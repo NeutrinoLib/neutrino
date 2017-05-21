@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -39,7 +40,7 @@ namespace Neutrino.Core.Services
             _httpClient = httpClient;
 
             _applicationLifetime.ApplicationStopping.Register(DisposeResources);
-            _tokenSources = new Dictionary<string, CancellationTokenSource>();
+            _tokenSources = new ConcurrentDictionary<string, CancellationTokenSource>();
         }
 
         public void RunHealthChecker(Service service)
@@ -56,7 +57,7 @@ namespace Neutrino.Core.Services
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             _tokenSources.Add(key, tokenSource);
 
-            Task.Run(() => CheckHealth(service, serviceHealth, tokenSource.Token), tokenSource.Token);
+            Task.Run(() => CheckHealthTask(service, serviceHealth, tokenSource.Token), tokenSource.Token);
         }
 
         public void StopHealthChecker(string serviceId)
@@ -82,10 +83,12 @@ namespace Neutrino.Core.Services
             return new ServiceHealth();
         }
 
-        private async Task CheckHealth(Service service, ServiceHealth serviceHealth, CancellationToken token)
+        private async Task CheckHealthTask(Service service, ServiceHealth serviceHealth, CancellationToken token)
         {
             var interval = service.HealthCheck.Interval * 1000;
+            var deregisterServiceTime = service.HealthCheck.DeregisterCriticalServiceAfter * 1000;
             int lastExecute = interval;
+            int criticalTime = 0;
 
             while(!token.IsCancellationRequested) 
             {
@@ -94,39 +97,65 @@ namespace Neutrino.Core.Services
                     if(lastExecute == interval)
                     {
                         lastExecute = 0;
-
-                        var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, service.HealthCheck.Address);
-                        var httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
-
-                        var responseMessage = await httpResponseMessage.Content.ReadAsStringAsync();
-
-                        serviceHealth.ResponseMessage = responseMessage;
-                        serviceHealth.HealthState = httpResponseMessage.IsSuccessStatusCode ? HealthState.Passing : HealthState.Error;
-                        serviceHealth.StatusCode = (int)httpResponseMessage.StatusCode;
-                        serviceHealth.CreatedDate = DateTime.UtcNow;
-
-                        AddServiceHealthToStore(serviceHealth);
-
-                        _logger.LogInformation($"Health state of service '{service.Id}': {serviceHealth.HealthState}. Status code: {serviceHealth.StatusCode}. Message: '{serviceHealth.ResponseMessage}'.");
+                        await CheckHealth(service, serviceHealth);
+                        criticalTime = 0;
                     }
                 }
                 catch(Exception exception)
                 {
-                    serviceHealth.ResponseMessage = exception.Message;
-                    serviceHealth.HealthState = HealthState.Critical;
-                    serviceHealth.StatusCode = 0;
-                    serviceHealth.CreatedDate = DateTime.UtcNow;
-
-                    AddServiceHealthToStore(serviceHealth);
-
-                    _logger.LogError($"Health state of service '{service.Id}': {serviceHealth.HealthState}. Status code: {serviceHealth.StatusCode}. Message: '{serviceHealth.ResponseMessage}'.");
+                    CatchHealthError(service, serviceHealth, exception);
+                    criticalTime += interval;
                 }
                 finally
                 {
                     Thread.Sleep(500);
                     lastExecute += 500;
                 }
+
+                if(criticalTime >= deregisterServiceTime)
+                {
+                    DeregisterService(service);
+                    break;
+                }
             }
+        }
+
+        private void DeregisterService(Service service)
+        {
+            _storeContext.Repository.Delete<Service>(service.Id);
+            _logger.LogError($"Service '{service.Id}' is in critical state too long. Deregistering services.");
+
+            var key = GetKey(service.Id);
+            _tokenSources.Remove(key);
+        }
+
+        private void CatchHealthError(Service service, ServiceHealth serviceHealth, Exception exception)
+        {
+            serviceHealth.ResponseMessage = exception.Message;
+            serviceHealth.HealthState = HealthState.Critical;
+            serviceHealth.StatusCode = 0;
+            serviceHealth.CreatedDate = DateTime.UtcNow;
+
+            AddServiceHealthToStore(serviceHealth);
+
+            _logger.LogError($"Health state of service '{service.Id}': {serviceHealth.HealthState}. Status code: {serviceHealth.StatusCode}. Message: '{serviceHealth.ResponseMessage}'.");
+        }
+
+        private async Task CheckHealth(Service service, ServiceHealth serviceHealth)
+        {
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, service.HealthCheck.Address);
+            var httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
+
+            var responseMessage = await httpResponseMessage.Content.ReadAsStringAsync();
+
+            serviceHealth.ResponseMessage = responseMessage;
+            serviceHealth.HealthState = httpResponseMessage.IsSuccessStatusCode ? HealthState.Passing : HealthState.Error;
+            serviceHealth.StatusCode = (int)httpResponseMessage.StatusCode;
+            serviceHealth.CreatedDate = DateTime.UtcNow;
+
+            AddServiceHealthToStore(serviceHealth);
+
+            _logger.LogInformation($"Health state of service '{service.Id}': {serviceHealth.HealthState}. Status code: {serviceHealth.StatusCode}. Message: '{serviceHealth.ResponseMessage}'.");
         }
 
         private void AddServiceHealthToStore(ServiceHealth serviceHealth)
@@ -140,6 +169,7 @@ namespace Neutrino.Core.Services
                 CreatedDate = serviceHealth.CreatedDate,
                 ServiceId = serviceHealth.ServiceId
             };
+
             _storeContext.Repository.Insert(newServiceHealth);
         }
 

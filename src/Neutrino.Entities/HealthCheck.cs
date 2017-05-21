@@ -11,5 +11,7 @@ namespace Neutrino.Entities
         public string Address { get; set; }
 
         public int Interval { get; set; }
+
+        public int DeregisterCriticalServiceAfter { get; set; }
     }
 }
