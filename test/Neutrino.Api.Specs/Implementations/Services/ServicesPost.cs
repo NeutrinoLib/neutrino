@@ -24,6 +24,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
         {
             GivenServiceWithId("new-service-01");
             GivenServiceWithServiceType("New Service 01");
+            GivenServiceWithAddress("http://localhost:8200");
             await WhenServiceIsRegistering();
             ThenResponseCodeIs(201);
             ThenLocationIsReturnedInHeaders("api/services/new-service-01");
@@ -40,6 +41,12 @@ namespace Neutrino.Api.Specs.Implementations.Services
         private void GivenServiceWithServiceType(string serviceType)
         {
             _serviceType = serviceType;
+        }
+
+        [Given("Service with address")]
+        private void GivenServiceWithAddress(string serviceAddress)
+        {
+            _serviceAddress = serviceAddress;
         }
 
         [When("Service is registering")]

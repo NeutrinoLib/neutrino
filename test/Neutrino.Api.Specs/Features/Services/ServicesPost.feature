@@ -5,6 +5,7 @@ Feature: Registering new service
 Scenario: Service have to be registered successfully when all required properties are given
 Given service with id "new-service-01"
     And service with service type "New Service 01"
+    And service with address "http://localhost:8200"
 When service is registering
 Then response code is "201"
     And location "api/services/new-service-01" is returned in headers
