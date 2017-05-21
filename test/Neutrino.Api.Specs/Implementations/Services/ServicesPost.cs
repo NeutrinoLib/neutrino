@@ -31,6 +31,39 @@ namespace Neutrino.Api.Specs.Implementations.Services
             await ThenServiceWasRegistered("new-service-01");
         }
 
+        [Scenario("Service cannot be registered when id is not specified")]
+        public async Task ServiceCannotBeRegisteredWhenIdIsNotSpecified()
+        {
+            GivenServiceWithId("");
+            GivenServiceWithServiceType("New Service 02");
+            GivenServiceWithAddress("http://localhost:8200");
+            await WhenServiceIsRegistering();
+            ThenResponseCodeIs(400);
+            await ThenErrorMessageContainsMessage("Service id wasn't specified");
+        }
+
+        [Scenario("Service cannot be registered when type is not specified")]
+        public async Task ServiceCannotBeRegisteredWhenTypeIsNotSpecified()
+        {
+            GivenServiceWithId("new-service-03");
+            GivenServiceWithServiceType("");
+            GivenServiceWithAddress("http://localhost:8200");
+            await WhenServiceIsRegistering();
+            ThenResponseCodeIs(400);
+            await ThenErrorMessageContainsMessage("Service type wasn't specified");
+        }
+
+        [Scenario("Service cannot be registered when address is not specified")]
+        public async Task ServiceCannotBeRegisteredWhenAddressIsNotSpecified()
+        {
+            GivenServiceWithId("new-service-04");
+            GivenServiceWithServiceType("New Service 02");
+            GivenServiceWithAddress("");
+            await WhenServiceIsRegistering();
+            ThenResponseCodeIs(400);
+            await ThenErrorMessageContainsMessage("Service address wasn't specified");
+        }
+
         [Given("Service with id")]
         private void GivenServiceWithId(string id)
         {
@@ -87,6 +120,13 @@ namespace Neutrino.Api.Specs.Implementations.Services
 
             var service = JsonConvert.DeserializeObject<Service>(serviceResponse);
             Assert.NotNull(service);
+        }
+
+        [Then("Error message contains message")]
+        private async Task ThenErrorMessageContainsMessage(string errorMessage)
+        {
+            var response = await _response.Content.ReadAsStringAsync();
+            Assert.True(response.Contains(errorMessage));
         }
     }
 }

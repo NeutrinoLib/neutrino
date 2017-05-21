@@ -35,8 +35,15 @@ namespace Neutrino.Api
         [ProducesResponseType(201)]
         public ActionResult Post([FromBody]Service service)
         {
-            _servicesService.Create(service);
-            return Created($"api/services/{service.Id}", service);
+            var actionConfirmation = _servicesService.Create(service);
+            if(actionConfirmation.WasSeccessful)
+            {
+                return Created($"api/services/{service.Id}", service);
+            }
+            else
+            {
+                return BadRequest(new { error = actionConfirmation.Message });
+            }
         }
 
         [HttpPut("{serviceId}")]

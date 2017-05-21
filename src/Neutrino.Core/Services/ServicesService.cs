@@ -6,6 +6,7 @@ using Neutrino.Core.Infrastructure;
 using Neutrino.Entities;
 using System.Threading;
 using Neutrino.Core.Repositories;
+using Neutrino.Core.Diagnostics.Exceptions;
 
 namespace Neutrino.Core.Services
 {
@@ -36,14 +37,31 @@ namespace Neutrino.Core.Services
             return service;
         }
 
-        public void Create(Service service)
+        public ActionConfirmation Create(Service service)
         {
+            if(string.IsNullOrWhiteSpace(service.Id))
+            {
+                return ActionConfirmation.CreateError("Service id wasn't specified");
+            }
+
+            if(string.IsNullOrWhiteSpace(service.ServiceType))
+            {
+                return ActionConfirmation.CreateError("Service type wasn't specified");
+            }
+
+            if(string.IsNullOrWhiteSpace(service.Address))
+            {
+                return ActionConfirmation.CreateError("Service address wasn't specified");
+            }
+
             _serviceRepository.Create(service);
 
             if(service.HealthCheck != null && service.HealthCheck.HealthCheckType == HealthCheckType.HttpRest)
             {
                 _healthService.RunHealthChecker(service);
             }
+
+            return ActionConfirmation.CreateSuccessful();
         }
 
         public void Update(string id, Service service)

@@ -10,7 +10,7 @@ namespace Neutrino.Core.Services
 
         Service Get(string id);
 
-        void Create(Service service);
+        ActionConfirmation Create(Service service);
 
         void Update(string id, Service service);
 

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Neutrino.Core.Diagnostics;
 using Neutrino.Core.Infrastructure;
 using Neutrino.Core.Repositories;
 using Neutrino.Core.Services;
@@ -81,6 +82,7 @@ namespace Neutrino.Api
                 loggerFactory.AddAzureWebAppDiagnostics();
             }
 
+            app.UseCustomExceptionHandler();
             app.UseMvc();
 
             app.UseSwagger();
