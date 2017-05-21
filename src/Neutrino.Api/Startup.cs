@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Neutrino.Core.Infrastructure;
 using Neutrino.Core.Services;
+using Neutrino.Core.Services.Parameters;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace Neutrino.Api
@@ -30,6 +31,8 @@ namespace Neutrino.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ApplicationParameters>(Configuration);
+
             services.AddMvc();
 
             services.AddMemoryCache();

@@ -1,4 +1,6 @@
 using LiteDB;
+using Microsoft.Extensions.Options;
+using Neutrino.Core.Services.Parameters;
 using Neutrino.Entities;
 
 namespace Neutrino.Core.Infrastructure
@@ -7,9 +9,12 @@ namespace Neutrino.Core.Infrastructure
     {
         public LiteRepository Repository { get; private set; }
 
-        public StoreContext()
+        private readonly ApplicationParameters _applicationParameters;
+
+        public StoreContext(IOptions<ApplicationParameters> applicationParameters)
         {
-            Repository = new LiteRepository("nosqltore.db");
+            _applicationParameters = applicationParameters.Value;
+            Repository = new LiteRepository(_applicationParameters.ConnectionStrings.DefaultConnection);
         }
 
         private bool disposedValue = false;
