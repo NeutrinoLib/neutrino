@@ -8,13 +8,16 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Neutrino.Core.Infrastructure;
+using Neutrino.Core.Repositories;
 using Neutrino.Entities;
 
 namespace Neutrino.Core.Services
 {
     public class HealthService : IHealthService
     {
-        private readonly IStoreContext _storeContext;
+        private readonly IRepository<Service> _serviceRepository;
+
+        private readonly IRepository<ServiceHealth> _serviceHealthRepository;
 
         private readonly IDictionary<string, CancellationTokenSource> _tokenSources;
 
@@ -27,13 +30,15 @@ namespace Neutrino.Core.Services
         private readonly HttpClient _httpClient;
 
         public HealthService(
-            IStoreContext storeContext, 
+            IRepository<Service> serviceRepository,
+            IRepository<ServiceHealth> serviceHealthRepository, 
             ILogger<HealthService> logger, 
             IMemoryCache memoryCache,
             IApplicationLifetime applicationLifetime,
             HttpClient httpClient)
         {
-            _storeContext = storeContext;
+            _serviceRepository = serviceRepository;
+            _serviceHealthRepository = serviceHealthRepository;
             _logger = logger;
             _memoryCache = memoryCache;
             _applicationLifetime = applicationLifetime;
@@ -122,7 +127,7 @@ namespace Neutrino.Core.Services
 
         private void DeregisterService(Service service)
         {
-            _storeContext.Repository.Delete<Service>(service.Id);
+            _serviceRepository.Delete(service.Id);
             _logger.LogError($"Service '{service.Id}' is in critical state too long. Deregistering services.");
 
             var key = GetKey(service.Id);
@@ -170,7 +175,7 @@ namespace Neutrino.Core.Services
                 ServiceId = serviceHealth.ServiceId
             };
 
-            _storeContext.Repository.Insert(newServiceHealth);
+            _serviceHealthRepository.Create(newServiceHealth);
         }
 
         private string GetKey(string serviceId)

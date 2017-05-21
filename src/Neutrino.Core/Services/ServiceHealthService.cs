@@ -3,26 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Neutrino.Core.Infrastructure;
+using Neutrino.Core.Repositories;
 using Neutrino.Entities;
 
 namespace Neutrino.Core.Services
 {
     public class ServiceHealthService : IServiceHealthService
     {
-        private readonly IStoreContext _storeContext;
+        private readonly IRepository<ServiceHealth> _serviceHealthRepository;
 
         private readonly IHealthService _healthService;
 
-        public ServiceHealthService(IStoreContext storeContext, IHealthService healthService)
+        public ServiceHealthService(IRepository<ServiceHealth> serviceHealthRepository, IHealthService healthService)
         {
-            _storeContext = storeContext;
+            _serviceHealthRepository = serviceHealthRepository;
             _healthService = healthService;
         }
 
         public IEnumerable<ServiceHealth> Get(string serviceId)
         {
-            var query = _storeContext.Repository.Query<ServiceHealth>().Where(x => x.ServiceId == serviceId);
-            return query.ToEnumerable();
+            var serviceHealth = _serviceHealthRepository.Get(x => x.ServiceId == serviceId);
+            return serviceHealth;
         }
 
         public ServiceHealth GetCurrent(string serviceId)
@@ -33,15 +34,14 @@ namespace Neutrino.Core.Services
 
         public ServiceHealth Get(string serviceId, string id)
         {
-            var query = _storeContext.Repository.Query<ServiceHealth>().Where(x => x.ServiceId == serviceId && x.Id == id);
+            var query = _serviceHealthRepository.Get(x => x.ServiceId == serviceId && x.Id == id);
             return query.FirstOrDefault();
         }
 
         public void Create(string serviceId, ServiceHealth serviceHealth)
         {
             serviceHealth.ServiceId = serviceId;
-            serviceHealth.CreatedDate = DateTime.UtcNow;
-            _storeContext.Repository.Insert(serviceHealth);
+            _serviceHealthRepository.Create(serviceHealth);
         }
     }
 }

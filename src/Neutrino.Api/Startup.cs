@@ -9,8 +9,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Neutrino.Core.Infrastructure;
+using Neutrino.Core.Repositories;
 using Neutrino.Core.Services;
 using Neutrino.Core.Services.Parameters;
+using Neutrino.Entities;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace Neutrino.Api
@@ -51,6 +53,11 @@ namespace Neutrino.Api
             services.AddSingleton<HttpClient, HttpClient>();
             services.AddSingleton<IStoreContext, StoreContext>();
             services.AddSingleton<IHealthService, HealthService>();
+
+            services.AddScoped<IRepository<Node>, Repository<Node>>();
+            services.AddScoped<IRepository<NodeHealth>, Repository<NodeHealth>>();
+            services.AddScoped<IRepository<Service>, Repository<Service>>();
+            services.AddScoped<IRepository<ServiceHealth>, Repository<ServiceHealth>>();
 
             services.AddScoped<INodesService, NodesService>();
             services.AddScoped<IServicesService, ServicesService>();
