@@ -15,5 +15,7 @@ namespace Neutrino.Core.Services
         void Update(string id, Service service);
 
         void Delete(string id);
+
+        void RunHealthChecker();
     }
 }

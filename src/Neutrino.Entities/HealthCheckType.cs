@@ -2,6 +2,7 @@ namespace Neutrino.Entities
 {
     public enum HealthCheckType
     {
-        HttpRest = 1
+        None = 1,
+        HttpRest = 2
     }
 }

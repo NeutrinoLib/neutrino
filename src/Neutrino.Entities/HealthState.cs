@@ -4,6 +4,7 @@ namespace Neutrino.Entities
     {
         Unknown = 1,
         Passing = 1,
-        Error = 2
+        Error = 2,
+        Critical = 3
     }
 }

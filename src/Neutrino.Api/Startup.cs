@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -27,11 +28,11 @@ namespace Neutrino.Api
 
         public IConfigurationRoot Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
             services.AddMvc();
+
+            services.AddMemoryCache();
 
             services.AddSwaggerGen(options =>
             {
@@ -44,18 +45,21 @@ namespace Neutrino.Api
                 });
             });
 
-            services.AddScoped<IStoreContext, StoreContext>();
+            services.AddSingleton<HttpClient, HttpClient>();
+            services.AddSingleton<IStoreContext, StoreContext>();
+            services.AddSingleton<IHealthService, HealthService>();
+
             services.AddScoped<INodesService, NodesService>();
             services.AddScoped<IServicesService, ServicesService>();
             services.AddScoped<IServiceHealthService, ServiceHealthService>();
             services.AddScoped<INodeHealthService, NodeHealthService>();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(
             IApplicationBuilder app, 
             IHostingEnvironment env, 
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            IServicesService servicesService)
         {
             if(env.IsDevelopment())
             {
@@ -74,6 +78,8 @@ namespace Neutrino.Api
             {
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
             });
+
+            servicesService.RunHealthChecker();
         }
     }
 }

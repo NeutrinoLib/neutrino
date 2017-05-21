@@ -5,6 +5,11 @@ namespace Neutrino.Entities
 {
     public class ServiceHealth : BaseEntity
     {
+        public ServiceHealth()
+        {
+            HealthState = HealthState.Unknown;
+        }
+
         [JsonConverter(typeof(StringEnumConverter))]
         public HealthState HealthState { get; set; }
 

@@ -11,9 +11,12 @@ namespace Neutrino.Core.Services
     {
         private readonly IStoreContext _storeContext;
 
-        public ServiceHealthService(IStoreContext storeContext)
+        private readonly IHealthService _healthService;
+
+        public ServiceHealthService(IStoreContext storeContext, IHealthService healthService)
         {
             _storeContext = storeContext;
+            _healthService = healthService;
         }
 
         public IEnumerable<ServiceHealth> Get(string serviceId)
@@ -24,9 +27,8 @@ namespace Neutrino.Core.Services
 
         public ServiceHealth GetCurrent(string serviceId)
         {
-            var healtList = _storeContext.Repository.Query<ServiceHealth>().Where(x => x.ServiceId == serviceId).ToList();
-            var currentHealth = healtList.OrderByDescending(x => x.CreatedDate).FirstOrDefault();
-            return currentHealth;
+            var serviceHealth = _healthService.GetServiceHealth(serviceId);
+            return serviceHealth;
         }
 
         public ServiceHealth Get(string serviceId, string id)
