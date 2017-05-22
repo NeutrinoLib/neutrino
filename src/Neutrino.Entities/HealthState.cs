@@ -3,8 +3,8 @@ namespace Neutrino.Entities
     public enum HealthState
     {
         Unknown = 1,
-        Passing = 1,
-        Error = 2,
-        Critical = 3
+        Passing = 2,
+        Error = 3,
+        Critical = 4
     }
 }

@@ -85,7 +85,7 @@ namespace Neutrino.Core.Services
                 return serviceHealth;
             }
 
-            return new ServiceHealth();
+            return new ServiceHealth { HealthState = HealthState.Unknown };
         }
 
         private async Task CheckHealthTask(Service service, ServiceHealth serviceHealth, CancellationToken token)
