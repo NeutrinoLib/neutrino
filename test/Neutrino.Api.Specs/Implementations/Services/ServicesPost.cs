@@ -10,6 +10,7 @@ using System.Text;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using System.Threading;
+using System.Net;
 
 namespace Neutrino.Api.Specs.Implementations.Services
 {
@@ -133,6 +134,27 @@ namespace Neutrino.Api.Specs.Implementations.Services
             await ThenServiceHealthIs("Critical");
         }
 
+        [Scenario("Service cannot be registered when service with same id exists")]
+        public async Task ServiceCannotBeRegisteredWhenServiceWithSameIdExists()
+        {
+            await GivenServiceWithIdNameAddressAndTypeExists("new-service-09", "New Service 01", "http://localhost:8200", "None");
+            await WhenServiceWithIdIsRegistering("new-service-09");
+            ThenResponseCodeIs(400);
+            await ThenErrorMessageContainsMessage("Service with id 'new-service-09' already exists.");
+        }
+
+        [Scenario("Service cannot be registered when id contains unacceptable characters")]
+        public async Task ServiceCannotBeRegisteredWhenIdContainsUnacceptableCharacters()
+        {
+            GivenServiceWithId("this $%^ service");
+            GivenServiceWithServiceType("New Service 10");
+            GivenServiceWithAddress("http://localhost:8200");
+            GivenServiceHealthCheckTypeIs("None");
+            await WhenServiceIsRegistering();
+            ThenResponseCodeIs(400);
+            await ThenErrorMessageContainsMessage("Service id contains unacceptable characters (only alphanumeric letters and dash is acceptable).");
+        }
+
         [Given("Service with id")]
         private void GivenServiceWithId(string id)
         {
@@ -166,14 +188,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
         [Given("Service health check type is")]
         private void GivenServiceHealthCheckTypeIs(string healthCheckType)
         {
-            if(healthCheckType == "None")
-            {
-                _healthCheckType = HealthCheckType.None;
-            }
-            else if(healthCheckType == "HttpRest")
-            {
-                _healthCheckType = HealthCheckType.HttpRest;
-            }
+            SetHealthCheckType(healthCheckType);
         }
 
         [Given("Deregistering critical service is")]
@@ -182,28 +197,29 @@ namespace Neutrino.Api.Specs.Implementations.Services
             _deregisterCriticalServiceAfter = deregisterCriticalServiceAfter;
         }
 
+        [Given("Service with id name address and type exists")]
+        public async Task GivenServiceWithIdNameAddressAndTypeExists(string serviceId, string serviceType, string address, string healthCheckType)
+        {
+            _serviceId = serviceId;
+            _serviceType = serviceType;
+            _serviceAddress = address;
+            SetHealthCheckType(healthCheckType);
+
+            await RegisterService();
+            Assert.Equal(HttpStatusCode.Created, _response.StatusCode);
+        }
+
         [When("Service is registering")]
         private async Task WhenServiceIsRegistering()
         {
-            var service = new Service
-            {
-                Id = _serviceId,
-                ServiceType = _serviceType,
-                Address = _serviceAddress,
-                HealthCheck = new HealthCheck 
-                {
-                    HealthCheckType = _healthCheckType,
-                    Address = _healthEndpoint,
-                    Interval = _healthInterval,
-                    DeregisterCriticalServiceAfter = _deregisterCriticalServiceAfter
-                }
-            };
+            await RegisterService();
+        }
 
-            var jsonString = JsonConvert.SerializeObject(service);
-            var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
-
-            var httpClient = ApiTestServer.Instance.CreateClient();
-            _response = await httpClient.PostAsync("/api/services", httpContent);
+        [When("Service with id is registering")]
+        private async Task WhenServiceWithIdIsRegistering(string serviceId)
+        {
+            _serviceId = serviceId;
+            await RegisterService();
         }
 
         [Then("Response code is")]
@@ -247,6 +263,41 @@ namespace Neutrino.Api.Specs.Implementations.Services
             dynamic parsedResponse = JObject.Parse(response);
 
             Assert.Equal(healthStatus, (string) parsedResponse.healthState);
+        }
+
+        private async Task RegisterService()
+        {
+            var service = new Service
+            {
+                Id = _serviceId,
+                ServiceType = _serviceType,
+                Address = _serviceAddress,
+                HealthCheck = new HealthCheck
+                {
+                    HealthCheckType = _healthCheckType,
+                    Address = _healthEndpoint,
+                    Interval = _healthInterval,
+                    DeregisterCriticalServiceAfter = _deregisterCriticalServiceAfter
+                }
+            };
+
+            var jsonString = JsonConvert.SerializeObject(service);
+            var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+            var httpClient = ApiTestServer.Instance.CreateClient();
+            _response = await httpClient.PostAsync("/api/services", httpContent);
+        }
+
+        private void SetHealthCheckType(string healthCheckType)
+        {
+            if (healthCheckType == "None")
+            {
+                _healthCheckType = HealthCheckType.None;
+            }
+            else if (healthCheckType == "HttpRest")
+            {
+                _healthCheckType = HealthCheckType.HttpRest;
+            }
         }
     }
 }

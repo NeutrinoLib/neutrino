@@ -85,3 +85,18 @@ Given service with id "new-service-08"
 When service is registering
 Then response code is "201"
     And service health is "Critical"
+
+Scenario: Service cannot be registered when service with same id exists
+Given service with id "new-service-09" name "New Service 01" address "http://localhost:8200" and type "None" exists
+When service with id "new-service-09" is registering
+Then response code is "400"
+    And error message contains message "Service with id 'new-service-09' already exists."
+
+Scenario: Service cannot be registered when id contains unacceptable characters
+Given service with id "this $%^ service"
+    And service with service type "New Service 10"
+    And service with address "http://localhost:8200"
+    And service health check type is "None"
+When service is registering
+Then response code is "400"
+    And error message contains message "Service id contains unacceptable characters (only alphanumeric letters and dash is acceptable)."
