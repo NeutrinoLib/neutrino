@@ -43,7 +43,8 @@ namespace Neutrino.Api.Controllers
         [ProducesResponseType(200)]
         public ActionResult Put(string nodeId, [FromBody]Node node)
         {
-            _nodesService.Update(nodeId, node);
+            node.Id = nodeId;
+            _nodesService.Update(node);
             return Ok();
         }
 

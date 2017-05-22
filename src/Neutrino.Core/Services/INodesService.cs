@@ -12,7 +12,7 @@ namespace Neutrino.Core.Services
 
         void Create(Node node);
 
-        void Update(string id, Node node);
+        void Update(Node node);
 
         void Delete(string id);
     }

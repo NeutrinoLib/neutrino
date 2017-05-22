@@ -7,6 +7,7 @@ using Neutrino.Entities;
 using System.Threading;
 using Neutrino.Core.Repositories;
 using Neutrino.Core.Diagnostics.Exceptions;
+using Neutrino.Core.Services.Validators;
 
 namespace Neutrino.Core.Services
 {
@@ -14,13 +15,20 @@ namespace Neutrino.Core.Services
     {
         private readonly IRepository<Service> _serviceRepository;
 
+        private readonly IServiceValidator _serviceValidator;
+
         private readonly IMemoryCache _memoryCache;
 
         private readonly IHealthService _healthService;
 
-        public ServicesService(IRepository<Service> serviceRepository, IMemoryCache memoryCache, IHealthService healthService)
+        public ServicesService(
+            IRepository<Service> serviceRepository,
+            IServiceValidator serviceValidator,
+            IMemoryCache memoryCache, 
+            IHealthService healthService)
         {
             _serviceRepository = serviceRepository;
+            _serviceValidator = serviceValidator;
             _memoryCache = memoryCache;
             _healthService = healthService;
         }
@@ -39,19 +47,10 @@ namespace Neutrino.Core.Services
 
         public ActionConfirmation Create(Service service)
         {
-            if(string.IsNullOrWhiteSpace(service.Id))
+            var validatorConfirmation = _serviceValidator.Validate(service);
+            if(!validatorConfirmation.WasSuccessful)
             {
-                return ActionConfirmation.CreateError("Service id wasn't specified");
-            }
-
-            if(string.IsNullOrWhiteSpace(service.ServiceType))
-            {
-                return ActionConfirmation.CreateError("Service type wasn't specified");
-            }
-
-            if(string.IsNullOrWhiteSpace(service.Address))
-            {
-                return ActionConfirmation.CreateError("Service address wasn't specified");
+                return validatorConfirmation;
             }
 
             _serviceRepository.Create(service);
@@ -64,9 +63,23 @@ namespace Neutrino.Core.Services
             return ActionConfirmation.CreateSuccessful();
         }
 
-        public void Update(string id, Service service)
+        public ActionConfirmation Update(Service service)
         {
-            _serviceRepository.Update(id, service);
+            var validatorConfirmation = _serviceValidator.Validate(service);
+            if(!validatorConfirmation.WasSuccessful)
+            {
+                return validatorConfirmation;
+            }
+
+            _serviceRepository.Update(service);
+            _healthService.StopHealthChecker(service.Id);
+
+            if(service.HealthCheck != null && service.HealthCheck.HealthCheckType == HealthCheckType.HttpRest)
+            {
+                _healthService.RunHealthChecker(service);
+            }
+
+            return ActionConfirmation.CreateSuccessful();
         }
 
         public void Delete(string id)

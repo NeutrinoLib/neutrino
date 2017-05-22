@@ -44,9 +44,8 @@ namespace Neutrino.Core.Repositories
             _storeContext.Repository.Insert(entity);
         }
 
-        public void Update(string id, T entity)
+        public void Update(T entity)
         {
-            entity.Id = id;
             _storeContext.Repository.Update(entity);
         }
 

@@ -33,9 +33,9 @@ namespace Neutrino.Core.Services
             _nodeRepository.Create(node);
         }
 
-        public void Update(string id, Node node)
+        public void Update(Node node)
         {
-            _nodeRepository.Update(id, node);
+            _nodeRepository.Update(node);
         }
 
         public void Delete(string id)

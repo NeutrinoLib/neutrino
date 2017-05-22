@@ -12,7 +12,7 @@ namespace Neutrino.Core.Services
 
         ActionConfirmation Create(Service service);
 
-        void Update(string id, Service service);
+        ActionConfirmation Update(Service service);
 
         void Delete(string id);
 

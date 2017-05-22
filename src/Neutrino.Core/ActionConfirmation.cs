@@ -1,19 +1,33 @@
+using System.Collections.Generic;
+using System.Linq;
+
 namespace Neutrino.Core
 {
     public class ActionConfirmation
     {
-        public bool WasSeccessful { get; protected set; }
+        public bool WasSuccessful { get; protected set; }
 
         public string Message { get; protected set; }
 
+        public ValidationError[] Errors { get; protected set; }
+
+        protected ActionConfirmation()
+        {
+        }
+
         public static ActionConfirmation CreateSuccessful()
         {
-            return new ActionConfirmation { WasSeccessful = true };
+            return new ActionConfirmation { WasSuccessful = true };
         }
 
         public static ActionConfirmation CreateError(string message)
         {
-            return new ActionConfirmation { WasSeccessful = false, Message = message };
+            return new ActionConfirmation { WasSuccessful = false, Message = message };
+        }
+
+        public static ActionConfirmation CreateError(string message, ValidationError[] errors)
+        {
+            return new ActionConfirmation { WasSuccessful = false, Message = message, Errors = errors };
         }
     }
 
@@ -23,7 +37,7 @@ namespace Neutrino.Core
 
         public static ActionConfirmation CreateSuccessful(T objectData)
         {
-            return new ActionConfirmation<T> { WasSeccessful = true, ObjectData = objectData };
+            return new ActionConfirmation<T> { WasSuccessful = true, ObjectData = objectData };
         }
     }
 }

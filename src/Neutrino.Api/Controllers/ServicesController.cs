@@ -36,13 +36,13 @@ namespace Neutrino.Api
         public ActionResult Post([FromBody]Service service)
         {
             var actionConfirmation = _servicesService.Create(service);
-            if(actionConfirmation.WasSeccessful)
+            if(actionConfirmation.WasSuccessful)
             {
                 return Created($"api/services/{service.Id}", service);
             }
             else
             {
-                return BadRequest(new { error = actionConfirmation.Message });
+                return BadRequest(actionConfirmation);
             }
         }
 
@@ -50,8 +50,16 @@ namespace Neutrino.Api
         [ProducesResponseType(200)]
         public ActionResult Put(string serviceId, [FromBody]Service service)
         {
-            _servicesService.Update(serviceId, service);
-            return Ok();
+            service.Id = serviceId;
+            var actionConfirmation = _servicesService.Update(service);
+            if(actionConfirmation.WasSuccessful)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest(actionConfirmation);
+            }
         }
 
         [HttpDelete("{serviceId}")]

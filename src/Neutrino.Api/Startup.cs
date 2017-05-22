@@ -13,6 +13,7 @@ using Neutrino.Core.Infrastructure;
 using Neutrino.Core.Repositories;
 using Neutrino.Core.Services;
 using Neutrino.Core.Services.Parameters;
+using Neutrino.Core.Services.Validators;
 using Neutrino.Entities;
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -64,6 +65,8 @@ namespace Neutrino.Api
             services.AddScoped<IServicesService, ServicesService>();
             services.AddScoped<IServiceHealthService, ServiceHealthService>();
             services.AddScoped<INodeHealthService, NodeHealthService>();
+
+            services.AddScoped<IServiceValidator, ServiceValidator>();
         }
 
         public void Configure(
