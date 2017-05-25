@@ -47,7 +47,7 @@ namespace Neutrino.Core.Services
 
         public ActionConfirmation Create(Service service)
         {
-            var validatorConfirmation = _serviceValidator.Validate(service);
+            var validatorConfirmation = _serviceValidator.Validate(service, ActionType.Create);
             if(!validatorConfirmation.WasSuccessful)
             {
                 return validatorConfirmation;
@@ -65,7 +65,7 @@ namespace Neutrino.Core.Services
 
         public ActionConfirmation Update(Service service)
         {
-            var validatorConfirmation = _serviceValidator.Validate(service);
+            var validatorConfirmation = _serviceValidator.Validate(service, ActionType.Update);
             if(!validatorConfirmation.WasSuccessful)
             {
                 return validatorConfirmation;

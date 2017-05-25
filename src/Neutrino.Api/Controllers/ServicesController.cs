@@ -25,10 +25,15 @@ namespace Neutrino.Api
 
         [HttpGet("{serviceId}")]
         [ProducesResponseType(200, Type = typeof(Service))]
-        public Service Get(string serviceId)
+        public ActionResult Get(string serviceId)
         {
             var service = _servicesService.Get(serviceId);
-            return service;
+            if(service == null)
+            {
+                return NotFound();
+            }
+
+            return new ObjectResult(service);
         }
 
         [HttpPost]
@@ -50,6 +55,12 @@ namespace Neutrino.Api
         [ProducesResponseType(200)]
         public ActionResult Put(string serviceId, [FromBody]Service service)
         {
+            var serviceFromStore = _servicesService.Get(serviceId);
+            if(serviceFromStore == null)
+            {
+                return NotFound();
+            }
+
             service.Id = serviceId;
             var actionConfirmation = _servicesService.Update(service);
             if(actionConfirmation.WasSuccessful)
@@ -66,6 +77,12 @@ namespace Neutrino.Api
         [ProducesResponseType(200)]
         public ActionResult Delete(string serviceId)
         {
+            var service = _servicesService.Get(serviceId);
+            if(service == null)
+            {
+                return NotFound();
+            }
+
             _servicesService.Delete(serviceId);
             return Ok();
         }

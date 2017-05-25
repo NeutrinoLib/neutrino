@@ -15,7 +15,7 @@ namespace Neutrino.Core.Services.Validators
             _serviceRepository = serviceRepository;
         }
 
-        public ActionConfirmation Validate(Service service)
+        public ActionConfirmation Validate(Service service, ActionType actionType)
         {
             var errors = new List<ValidationError>();
             
@@ -29,7 +29,7 @@ namespace Neutrino.Core.Services.Validators
                 });
             }
 
-            if(_serviceRepository.Get(service.Id) != null)
+            if(actionType == ActionType.Create && _serviceRepository.Get(service.Id) != null)
             {
                 errors.Add(new ValidationError 
                 { 

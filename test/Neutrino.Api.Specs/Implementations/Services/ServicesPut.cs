@@ -1,129 +1,249 @@
 using FluentBehave;
 using System;
+using Neutrino.Entities;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using System.Text;
+using Neutrino.Api.Specs.Infrastructure;
+using Xunit;
+using System.Net;
+using Newtonsoft.Json.Linq;
+using System.Threading;
 
 namespace Neutrino.Api.Specs.Implementations.Services
 {
     [Feature("ServicesPut", "Updating service information")]
     public class ServicesPut
     {
+        private string _serviceId;
+        private string _serviceType;
+        private string _serviceAddress;
+        private int _healthInterval;
+        private string _healthEndpoint;
+        private int _deregisterCriticalServiceAfter;
+        private HealthCheckType _healthCheckType;
+        private HttpResponseMessage _response;
+        private string _responseContent;
+        private dynamic _responseObject;
+
         [Scenario("Service type have to updated successfully when new type was specified")]
-        public void ServiceTypeHaveToUpdatedSuccessfullyWhenNewTypeWasSpecified()
+        public async Task ServiceTypeHaveToUpdatedSuccessfullyWhenNewTypeWasSpecified()
         {
-            GivenServiceWithIdNameAddressAndTypeExists("service-01", "Service 01", "http://localhost:8200", "None");
+            await GivenServiceWithIdNameAddressAndTypeExists("service-01", "Service 01", "http://localhost:8200", "None");
             GivenNewServiceNameIs("New Service 01");
-            WhenServiceIsUpdating("service-01");
+            await WhenServiceIsUpdating("service-01");
             ThenResponseCodeIs(200);
             ThenServiceHasName("New Service 01");
         }
 
         [Scenario("Service cannot be updated when new type is empty")]
-        public void ServiceCannotBeUpdatedWhenNewTypeIsEmpty()
+        public async Task ServiceCannotBeUpdatedWhenNewTypeIsEmpty()
         {
-            GivenServiceWithIdNameAddressAndTypeExists("service-02", "Service 02", "http://localhost:8200", "None");
+            await GivenServiceWithIdNameAddressAndTypeExists("service-02", "Service 02", "http://localhost:8200", "None");
             GivenNewServiceNameIs("");
-            WhenServiceIsUpdating("service-02");
+            await WhenServiceIsUpdating("service-02");
             ThenResponseCodeIs(400);
             ThenErrorMessageContainsMessage("Service type wasn't specified");
         }
 
-        [Scenario("Service type have to updated successfully when new address was specified")]
-        public void ServiceTypeHaveToUpdatedSuccessfullyWhenNewAddressWasSpecified()
+        [Scenario("Service address have to updated successfully when new address was specified")]
+        public async Task ServiceAddressHaveToUpdatedSuccessfullyWhenNewAddressWasSpecified()
         {
-            GivenServiceWithIdNameAddressAndTypeExists("service-03", "Service 03", "http://localhost:8200", "None");
-            GivenNewServiceAddressIs("Service 03");
-            WhenServiceIsUpdating("service-03");
+            await GivenServiceWithIdNameAddressAndTypeExists("service-03", "Service 03", "http://localhost:8200", "None");
+            GivenNewServiceAddressIs("http://localhost:9000");
+            await WhenServiceIsUpdating("service-03");
             ThenResponseCodeIs(200);
-            ThenServiceHasAddress("New Service 03");
+            ThenServiceHasAddress("http://localhost:9000");
         }
 
         [Scenario("Service cannot be updated when new address is empty")]
-        public void ServiceCannotBeUpdatedWhenNewAddressIsEmpty()
+        public async Task ServiceCannotBeUpdatedWhenNewAddressIsEmpty()
         {
-            GivenServiceWithIdNameAddressAndTypeExists("service-04", "Service 04", "http://localhost:8200", "None");
+            await GivenServiceWithIdNameAddressAndTypeExists("service-04", "Service 04", "http://localhost:8200", "None");
             GivenNewServiceAddressIs("");
-            WhenServiceIsUpdating("service-4");
+            await WhenServiceIsUpdating("service-04");
             ThenResponseCodeIs(400);
-            ThenErrorMessageContainsMessage("Service adress wasn't specified");
+            ThenErrorMessageContainsMessage("Service address wasn't specified");
         }
 
         [Scenario("After changing healt type from None to HttpRest healt should be checked")]
-        public void AfterChangingHealtTypeFromNoneToHttpRestHealtShouldBeChecked()
+        public async Task AfterChangingHealtTypeFromNoneToHttpRestHealtShouldBeChecked()
         {
-            GivenServiceWithIdNameAddressAndTypeExists("service-05", "Service 05", "http://httpbin.org/get", "None");
+            await GivenServiceWithIdNameAddressAndTypeExists("service-05", "Service 05", "http://httpbin.org/get", "None");
             GivenNewServiceHealthCheckTypeIs("HttpRest");
-            WhenServiceIsUpdating("service-05");
+            GivenNewHelthEndpointIs("http://httpbin.org/get");
+            GivenNewHelthIntervalIs(30);
+            GivenNewDeregisteringCriticalServiceIs(60);
+            await WhenServiceIsUpdating("service-05");
             ThenResponseCodeIs(200);
-            ThenServiceHealthIs("Passing");
+            await ThenServiceHealthIs("Passing");
         }
 
         [Scenario("Not found have to be returned when not existed service is updating")]
-        public void NotFoundHaveToBeReturnedWhenNotExistedServiceIsUpdating()
+        public async Task NotFoundHaveToBeReturnedWhenNotExistedServiceIsUpdating()
         {
-            GivenServiceWithIdNameAddressAndTypeExists("service-06", "Service 06", "http://localhost:8200", "None");
+            await GivenServiceWithIdNameAddressAndTypeExists("service-06", "Service 06", "http://localhost:8200", "None");
             GivenNewServiceHealthCheckTypeIs("HttpRest");
-            WhenServiceIsUpdating("not-existed-service");
+            await WhenServiceIsUpdating("not-existed-service");
             ThenResponseCodeIs(404);
         }
 
-        [Given("Service with id name address and type exists")]
-        public void GivenServiceWithIdNameAddressAndTypeExists(string serviceId, string serviceType, string address, string healthCheckType)
+        [Given("Service with id (.*) name (.*) address (.*) and type (.*) exists")]
+        public async Task GivenServiceWithIdNameAddressAndTypeExists(string serviceId, string serviceType, string address, string healthCheckType)
         {
-            throw new NotImplementedException("Implement me!");
+            _serviceId = serviceId;
+            _serviceType = serviceType;
+            _serviceAddress = address;
+            SetHealthCheckType(healthCheckType);
+
+            await RegisterService();
+            Assert.Equal(HttpStatusCode.Created, _response.StatusCode);
         }
 
-        [Given("New service name is")]
-        private void GivenNewServiceNameIs(string serviceName)
+        [Given("New service name is (.*)")]
+        private void GivenNewServiceNameIs(string serviceType)
         {
-            throw new NotImplementedException("Implement me!");
+            _serviceType = serviceType;
         }
 
-        [When("Service is updating")]
-        private void WhenServiceIsUpdating(string serviceId)
+        [When("Service is updating (.*)")]
+        private async Task WhenServiceIsUpdating(string serviceId)
         {
-            throw new NotImplementedException("Implement me!");
+            await UpdateService(serviceId);
         }
 
-        [Then("Response code is")]
-        private void ThenResponseCodeIs(int responseCode)
+        [Then("Response code is (.*)")]
+        private void ThenResponseCodeIs(int statusCode)
         {
-            throw new NotImplementedException("Implement me!");
+            Assert.Equal(statusCode, (int) _response.StatusCode);
         }
 
-        [Then("Service has name")]
-        private void ThenServiceHasName(string serviceName)
+        [Then("Service has name (.*)")]
+        private void ThenServiceHasName(string serviceType)
         {
-            throw new NotImplementedException("Implement me!");
+            Assert.Equal(serviceType, (string) _responseObject.serviceType);
         }
 
-        [Then("Error message contains message")]
+        [Then("Error message contains message (.*)")]
         private void ThenErrorMessageContainsMessage(string errorMessage)
         {
-            throw new NotImplementedException("Implement me!");
+            Assert.True(_responseContent.Contains(errorMessage));
         }
 
-        [Given("New service address is")]
+        [Given("New service address is (.*)")]
         private void GivenNewServiceAddressIs(string serviceAddress)
         {
-            throw new NotImplementedException("Implement me!");
+            _serviceAddress = serviceAddress;
         }
 
-        [Then("Service has address")]
+        [Then("Service has address (.*)")]
         private void ThenServiceHasAddress(string serviceAddress)
         {
-            throw new NotImplementedException("Implement me!");
+            Assert.Equal(serviceAddress, (string) _responseObject.address);
         }
 
-        [Given("New service health check type is")]
+        [Given("New service health check type is (.*)")]
         private void GivenNewServiceHealthCheckTypeIs(string healtCheckType)
         {
-            throw new NotImplementedException("Implement me!");
+            SetHealthCheckType(healtCheckType);
         }
 
-        [Then("Service health is")]
-        private void ThenServiceHealthIs(string serviceHealth)
+        [Given("New Helth endpoint is (.*)")]
+        private void GivenNewHelthEndpointIs(string healthEndpoint)
         {
-            throw new NotImplementedException("Implement me!");
+            _healthEndpoint = healthEndpoint;
         }
 
+        [Given("New deregistering critical service is (.*)")]
+        private void GivenNewDeregisteringCriticalServiceIs(int deregisterCriticalServiceAfter)
+        {
+            _deregisterCriticalServiceAfter = deregisterCriticalServiceAfter;
+        }
+
+        [Given("New helth interval is (.*)")]
+        private void GivenNewHelthIntervalIs(int healthInterval)
+        {
+            _healthInterval = healthInterval;
+        }
+
+        [Then("Service health is (.*)")]
+        private async Task ThenServiceHealthIs(string healthStatus)
+        {
+            Thread.Sleep(2000);
+            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpResponseMessage = await httpClient.GetAsync($"/api/services/{_serviceId}/health/current");
+
+            var response = await httpResponseMessage.Content.ReadAsStringAsync();
+            dynamic parsedResponse = JObject.Parse(response);
+
+            Assert.Equal(healthStatus, (string) parsedResponse.healthState);
+        }
+
+        private async Task RegisterService()
+        {
+            var service = new Service
+            {
+                Id = _serviceId,
+                ServiceType = _serviceType,
+                Address = _serviceAddress,
+                HealthCheck = new HealthCheck
+                {
+                    HealthCheckType = _healthCheckType,
+                    Address = _healthEndpoint,
+                    Interval = _healthInterval,
+                    DeregisterCriticalServiceAfter = _deregisterCriticalServiceAfter
+                }
+            };
+
+            var jsonString = JsonConvert.SerializeObject(service);
+            var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+            var httpClient = ApiTestServer.Instance.CreateClient();
+            _response = await httpClient.PostAsync("/api/services", httpContent);
+        }
+
+        private async Task UpdateService(string serviceId)
+        {
+            var service = new Service
+            {
+                Id = _serviceId,
+                ServiceType = _serviceType,
+                Address = _serviceAddress,
+                HealthCheck = new HealthCheck
+                {
+                    HealthCheckType = _healthCheckType,
+                    Address = _healthEndpoint,
+                    Interval = _healthInterval,
+                    DeregisterCriticalServiceAfter = _deregisterCriticalServiceAfter
+                }
+            };
+
+            var jsonString = JsonConvert.SerializeObject(service);
+            var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+            var httpClient = ApiTestServer.Instance.CreateClient();
+            _response = await httpClient.PutAsync($"/api/services/{serviceId}", httpContent);
+            _responseContent = await _response.Content.ReadAsStringAsync();
+
+            var response = await httpClient.GetAsync($"/api/services/{serviceId}");
+            if(response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _responseObject = JObject.Parse(responseContent);
+            }
+        }
+
+        private void SetHealthCheckType(string healthCheckType)
+        {
+            if (healthCheckType == "None")
+            {
+                _healthCheckType = HealthCheckType.None;
+            }
+            else if (healthCheckType == "HttpRest")
+            {
+                _healthCheckType = HealthCheckType.HttpRest;
+            }
+        }
     }
 }

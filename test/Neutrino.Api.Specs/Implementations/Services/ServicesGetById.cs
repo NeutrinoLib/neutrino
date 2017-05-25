@@ -1,65 +1,126 @@
 using FluentBehave;
 using System;
+using Neutrino.Entities;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using System.Text;
+using Neutrino.Api.Specs.Infrastructure;
+using Xunit;
+using System.Net;
+using Newtonsoft.Json.Linq;
 
 namespace Neutrino.Api.Specs.Implementations.Services
 {
     [Feature("ServicesGetById", "Updating service information")]
     public class ServicesGetById
     {
+        private string _serviceId;
+        private string _serviceType;
+        private string _serviceAddress;
+        private HealthCheckType _healthCheckType;
+        private HttpResponseMessage _response;
+        private string _responseContent;
+        private dynamic _serviceObject;
+
         [Scenario("Service data have to be returned when user get service by his id")]
-        public void ServiceDataHaveToBeReturnedWhenUserGetServiceByHisId()
+        public async Task ServiceDataHaveToBeReturnedWhenUserGetServiceByHisId()
         {
-            GivenServiceWithIdNameAddressAndTypeExists("get-service-01", "Get Service 01", "http://localhost:8200", "None");
-            WhenGettingByServiceIdIsExecuted("get-service-01");
+            await GivenServiceWithIdNameAddressAndTypeExists("getbyid-service-01", "Get By Id Service 01", "http://localhost:8200", "None");
+            await WhenGetServiceWithId("getbyid-service-01");
             ThenResponseCodeIs(200);
-            ThenServiceIdIs("get-service-01");
-            ThenServiceNameIs("Get Service 01");
+            ThenServiceIdIs("getbyid-service-01");
+            ThenServiceNameIs("Get By Id Service 01");
             ThenServiceAddressIs("http://localhost:8200");
         }
 
         [Scenario("Not found have to be returned when not existed service is downloading")]
-        public void NotFoundHaveToBeReturnedWhenNotExistedServiceIsDownloading()
+        public async Task NotFoundHaveToBeReturnedWhenNotExistedServiceIsDownloading()
         {
-            GivenServiceWithIdNameAddressAndTypeExists("get-service-02", "Get Service 02", "http://localhost:8200", "None");
-            WhenGettingByServiceIdIsExecuted("not-existed-service");
+            await GivenServiceWithIdNameAddressAndTypeExists("getbyid-service-02", "Get By Id Service 02", "http://localhost:8200", "None");
+            await WhenGetServiceWithId("not-existed-service");
             ThenResponseCodeIs(404);
         }
 
-        [Given("Service with id name address and type exists")]
-        public void GivenServiceWithIdNameAddressAndTypeExists(string serviceId, string serviceType, string address, string healthCheckType)
+        [Given("Service with id (.*) name (.*) address (.*) and type (.*) exists")]
+        public async Task GivenServiceWithIdNameAddressAndTypeExists(string serviceId, string serviceType, string address, string healthCheckType)
         {
-            throw new NotImplementedException("Implement me!");
+            _serviceId = serviceId;
+            _serviceType = serviceType;
+            _serviceAddress = address;
+            SetHealthCheckType(healthCheckType);
+
+            await RegisterService();
+            Assert.Equal(HttpStatusCode.Created, _response.StatusCode);
         }
 
-        [When("Getting by service id is executed")]
-        private void WhenGettingByServiceIdIsExecuted(string serviceId)
+        [When("Get service with id (.*)")]
+        private async Task WhenGetServiceWithId(string serviceId)
         {
-            throw new NotImplementedException("Implement me!");
+            var httpClient = ApiTestServer.Instance.CreateClient();
+            _response = await httpClient.GetAsync($"/api/services/{serviceId}");
+            _responseContent = await _response.Content.ReadAsStringAsync();
+
+            if(_response.IsSuccessStatusCode)
+            {
+                _serviceObject = JObject.Parse(_responseContent);
+            }
         }
 
-        [Then("Response code is")]
-        private void ThenResponseCodeIs(int responseCode)
+        [Then("Response code is (.*)")]
+        private void ThenResponseCodeIs(int statusCode)
         {
-            throw new NotImplementedException("Implement me!");
+            Assert.Equal(statusCode, (int) _response.StatusCode);
         }
 
-        [Then("Service id is")]
+        [Then("Service id is (.*)")]
         private void ThenServiceIdIs(string serviceId)
         {
-            throw new NotImplementedException("Implement me!");
+            Assert.Equal(serviceId, (string) _serviceObject.id);
         }
 
-        [Then("Service name is")]
+        [Then("Service name is (.*)")]
         private void ThenServiceNameIs(string serviceName)
         {
-            throw new NotImplementedException("Implement me!");
+            Assert.Equal(serviceName, (string) _serviceObject.serviceType);
         }
 
-        [Then("Service address is")]
+        [Then("Service address is (.*)")]
         private void ThenServiceAddressIs(string serviceAddress)
         {
-            throw new NotImplementedException("Implement me!");
+            Assert.Equal(serviceAddress, (string) _serviceObject.address);
         }
 
+        private async Task RegisterService()
+        {
+            var service = new Service
+            {
+                Id = _serviceId,
+                ServiceType = _serviceType,
+                Address = _serviceAddress,
+                HealthCheck = new HealthCheck
+                {
+                    HealthCheckType = _healthCheckType
+                }
+            };
+
+            var jsonString = JsonConvert.SerializeObject(service);
+            var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+            var httpClient = ApiTestServer.Instance.CreateClient();
+            _response = await httpClient.PostAsync("/api/services", httpContent);
+        }
+
+        private void SetHealthCheckType(string healthCheckType)
+        {
+            if (healthCheckType == "None")
+            {
+                _healthCheckType = HealthCheckType.None;
+            }
+            else if (healthCheckType == "HttpRest")
+            {
+                _healthCheckType = HealthCheckType.HttpRest;
+            }
+        }
     }
 }

@@ -155,49 +155,49 @@ namespace Neutrino.Api.Specs.Implementations.Services
             await ThenErrorMessageContainsMessage("Service id contains unacceptable characters (only alphanumeric letters and dash is acceptable).");
         }
 
-        [Given("Service with id")]
+        [Given("Service with id (.*)")]
         private void GivenServiceWithId(string id)
         {
             _serviceId = id;
         }
 
-        [Given("Service with name")]
+        [Given("Service with name (.*)")]
         private void GivenServiceWithServiceType(string serviceType)
         {
             _serviceType = serviceType;
         }
 
-        [Given("Service with address")]
+        [Given("Service with address (.*)")]
         private void GivenServiceWithAddress(string serviceAddress)
         {
             _serviceAddress = serviceAddress;
         }
 
-        [Given("Helth interval is")]
+        [Given("Helth interval is (.*)")]
         private void GivenHelthIntervalIs(int healthInterval)
         {
             _healthInterval = healthInterval;
         }
 
-        [Given("Helth endpoint is")]
+        [Given("Helth endpoint is (.*)")]
         private void GivenHelthEndpointIs(string healthEndpoint)
         {
             _healthEndpoint = healthEndpoint;
         }
 
-        [Given("Service health check type is")]
+        [Given("Service health check type is (.*)")]
         private void GivenServiceHealthCheckTypeIs(string healthCheckType)
         {
             SetHealthCheckType(healthCheckType);
         }
 
-        [Given("Deregistering critical service is")]
+        [Given("Deregistering critical service is (.*)")]
         private void GivenDeregisteringCriticalServiceIs(int deregisterCriticalServiceAfter)
         {
             _deregisterCriticalServiceAfter = deregisterCriticalServiceAfter;
         }
 
-        [Given("Service with id name address and type exists")]
+        [Given("Service with id (.*) name (.*) address (.*) and type (.*) exists")]
         public async Task GivenServiceWithIdNameAddressAndTypeExists(string serviceId, string serviceType, string address, string healthCheckType)
         {
             _serviceId = serviceId;
@@ -215,27 +215,27 @@ namespace Neutrino.Api.Specs.Implementations.Services
             await RegisterService();
         }
 
-        [When("Service with id is registering")]
+        [When("Service with id (.*) is registering")]
         private async Task WhenServiceWithIdIsRegistering(string serviceId)
         {
             _serviceId = serviceId;
             await RegisterService();
         }
 
-        [Then("Response code is")]
+        [Then("Response code is (.*)")]
         private void ThenResponseCodeIs(int statusCode)
         {
             Assert.Equal(statusCode, (int) _response.StatusCode);
         }
 
-        [Then("Location is returned in headers")]
+        [Then("Location (.*) is returned in headers")]
         private void ThenLocationIsReturnedInHeaders(string location)
         {
             var locationInHeader = _response.Headers.GetValues("location").FirstOrDefault();
             Assert.Equal(location, locationInHeader);
         }
 
-        [Then("Service was registered")]
+        [Then("Service (.*) was registered")]
         private async Task ThenServiceWasRegistered(string serviceId)
         {
             var httpClient = ApiTestServer.Instance.CreateClient();
@@ -245,14 +245,14 @@ namespace Neutrino.Api.Specs.Implementations.Services
             Assert.NotNull(service);
         }
 
-        [Then("Error message contains message")]
+        [Then("Error message contains message (.*)")]
         private async Task ThenErrorMessageContainsMessage(string errorMessage)
         {
             var response = await _response.Content.ReadAsStringAsync();
             Assert.True(response.Contains(errorMessage));
         }
 
-        [Then("Service health is")]
+        [Then("Service health is (.*)")]
         private async Task ThenServiceHealthIs(string healthStatus)
         {
             Thread.Sleep(2000);

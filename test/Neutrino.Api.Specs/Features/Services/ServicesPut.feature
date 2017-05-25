@@ -16,23 +16,26 @@ When service "service-02" is updating
 Then response code is "400"
     And error message contains message "Service type wasn't specified"
 
-Scenario: Service type have to updated successfully when new address was specified
+Scenario: Service adress have to updated successfully when new address was specified
 Given service with id "service-03" name "New Service 03" address "http://localhost:8200" and type "None" exists
-    And new service address is "Service 03"
+    And new service address is "http://localhost:9000"
 When service "service-03" is updating
 Then response code is "200"
-    And service has address "New Service 03"
+    And service has address "http://localhost:9000"
 
 Scenario: Service cannot be updated when new address is empty
 Given service with id "service-04" name "Service 04" address "http://localhost:8200" and type "None" exists
     And new service address is ""
-When service "service-4" is updating
+When service "service-04" is updating
 Then response code is "400"
-    And error message contains message "Service adress wasn't specified"
+    And error message contains message "Service address wasn't specified"
 
 Scenario: After changing healt type from None to HttpRest healt should be checked
 Given service with id "service-05" name "Service 05" address "http://httpbin.org/get" and type "None" exists
     And new service health check type is "HttpRest"
+    And new helth endpoint is "http://httpbin.org/get"
+    And new helth interval is "30"
+    And new deregistering critical service is "60"
 When service "service-05" is updating
 Then response code is "200"
     And service health is "Passing"
