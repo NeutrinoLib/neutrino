@@ -68,6 +68,8 @@ namespace Neutrino.Api
             services.AddScoped<INodeHealthService, NodeHealthService>();
 
             services.AddScoped<IServiceValidator, ServiceValidator>();
+
+            services.AddSingleton<IConsensusContext, ConsensusContext>();
         }
 
         public void Configure(
@@ -75,7 +77,7 @@ namespace Neutrino.Api
             IHostingEnvironment env, 
             ILoggerFactory loggerFactory,
             IServicesService servicesService,
-            ILeaderElectionService leaderElectionService)
+            IConsensusContext consensusContext)
         {
             if(env.IsDevelopment())
             {
@@ -98,7 +100,7 @@ namespace Neutrino.Api
             });
 
             servicesService.RunHealthChecker();
-            leaderElectionService.Run();
+            consensusContext.Run();
         }
     }
 }

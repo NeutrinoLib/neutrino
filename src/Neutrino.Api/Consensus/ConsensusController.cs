@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Neutrino.Api.Consensus.Events;
 using Neutrino.Entities;
 
 namespace Neutrino.Api.Consensus
@@ -7,25 +8,25 @@ namespace Neutrino.Api.Consensus
     [Route("api/consensus")]
     public class NodesController : Controller
     {
-        ILeaderElectionService _leaderElectionService;
+        IConsensusContext _consensusContext;
 
-        public NodesController(ILeaderElectionService leaderElectionService)
+        public NodesController(IConsensusContext consensusContext)
         {
-            _leaderElectionService = leaderElectionService;
+            _consensusContext = consensusContext;
         }
 
         [HttpPost("heartbeat")]
-        public ActionResult Heartbeat([FromBody] Node node)
+        public ActionResult Heartbeat([FromBody] HeartbeatEvent heartbeatEvent)
         {
-            _leaderElectionService.ReceiveHearbeat(node);
+            _consensusContext.TriggerEvent(heartbeatEvent);
             return Ok();
         }
 
         [HttpPost("leader")]
-        public ActionResult LeaderRequestVote([FromBody] Node node)
+        public ActionResult LeaderRequestVote([FromBody] LeaderRequestEvent leaderRequest)
         {
-            bool canBeLeader = _leaderElectionService.ReceiveLeaderRequest(node);
-            return new ObjectResult(new NodeVote { VoteValue = canBeLeader });
+            var response = _consensusContext.TriggerEvent(leaderRequest);
+            return new ObjectResult(response);
         }
     }
 }
