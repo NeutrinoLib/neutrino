@@ -7,7 +7,7 @@
         {
             "taskName": "build",
             "args": [
-                "${workspaceRoot}/Neutrino.Api/Neutrino.Api.csproj"
+                "${workspaceRoot}/src/Neutrino.Api/Neutrino.Api.csproj"
             ],
             "isBuildCommand": true,
             "problemMatcher": "$msCompile"

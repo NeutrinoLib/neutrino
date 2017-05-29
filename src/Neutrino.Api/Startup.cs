@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Neutrino.Api.Consensus;
 using Neutrino.Core.Diagnostics;
 using Neutrino.Core.Infrastructure;
 using Neutrino.Core.Repositories;
@@ -73,7 +74,8 @@ namespace Neutrino.Api
             IApplicationBuilder app, 
             IHostingEnvironment env, 
             ILoggerFactory loggerFactory,
-            IServicesService servicesService)
+            IServicesService servicesService,
+            ILeaderElectionService leaderElectionService)
         {
             if(env.IsDevelopment())
             {
@@ -86,6 +88,7 @@ namespace Neutrino.Api
             }
 
             app.UseCustomExceptionHandler();
+
             app.UseMvc();
 
             app.UseSwagger();
@@ -95,6 +98,7 @@ namespace Neutrino.Api
             });
 
             servicesService.RunHealthChecker();
+            leaderElectionService.Run();
         }
     }
 }

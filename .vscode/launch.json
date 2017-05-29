@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceRoot}/Neutrino.Api/bin/Debug/netcoreapp1.1/Neutrino.Api.dll",
+            "program": "${workspaceRoot}/src/Neutrino.Api/bin/Debug/netcoreapp1.1/Neutrino.Api.dll",
             "args": [],
-            "cwd": "${workspaceRoot}/Neutrino.Api",
+            "cwd": "${workspaceRoot}/src/Neutrino.Api",
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart",
             "launchBrowser": {
