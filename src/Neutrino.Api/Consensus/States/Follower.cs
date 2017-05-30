@@ -45,7 +45,11 @@ namespace Neutrino.Api.Consensus.States
                     _consensusContext.CurrentTerm = leaderRequestEvent.CurrentTerm;
                     _lastRertievedHeartbeat = 0;
 
-                    Console.WriteLine($"Voted was granted for node: {leaderRequestEvent.Node.Id}.");
+                    Console.WriteLine($"Votingfor node ({leaderRequestEvent.Node.Id}): GRANTED.");
+                }
+                else
+                {
+                    Console.WriteLine($"Votingfor node ({leaderRequestEvent.Node.Id}): NOT GRANTED.");
                 }
 
                 return new VoteResponse(voteValue, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);

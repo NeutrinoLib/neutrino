@@ -46,9 +46,13 @@ namespace Neutrino.Api.Consensus.States
                     _consensusContext.LeaderNode = leaderRequestEvent.Node;
                     _consensusContext.CurrentTerm = leaderRequestEvent.CurrentTerm;
 
-                    Console.WriteLine($"Voted was granted for node: {leaderRequestEvent.Node.Id}.");
+                    Console.WriteLine($"Votingfor node ({leaderRequestEvent.Node.Id}): GRANTED.");
                     StopVoting();
                     _consensusContext.State = new Follower(_consensusContext);
+                }
+                else
+                {
+                    Console.WriteLine($"Votingfor node ({leaderRequestEvent.Node.Id}): NOT GRANTED.");
                 }
                 
                 return new VoteResponse(voteGranted, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
@@ -107,8 +111,6 @@ namespace Neutrino.Api.Consensus.States
         {
             foreach (var task in tasks)
             {
-                Console.WriteLine($"RAN TO COMPLETION ({_consensusContext.CurrentTerm}): {task.Status}");
-
                 if (task.Status == TaskStatus.RanToCompletion && task.Result.IsSuccessStatusCode)
                 {
                     var responseContent = task.Result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
@@ -121,6 +123,12 @@ namespace Neutrino.Api.Consensus.States
                     {
                         nodeState.VoteGranted = nodeVote.VoteGranted;
                     }
+
+                    Console.WriteLine($"Vote from node ({nodeVote.Node.Id}): {nodeVote.VoteGranted} (term: {_consensusContext.CurrentTerm}).");
+                }
+                else
+                {
+                    Console.WriteLine($"Vote failed with task status: {task.Status} (term: {_consensusContext.CurrentTerm}).");
                 }
             }
         }
