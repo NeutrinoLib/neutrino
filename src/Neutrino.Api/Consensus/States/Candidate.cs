@@ -38,12 +38,15 @@ namespace Neutrino.Api.Consensus.States
             var leaderRequestEvent = triggeredEvent as LeaderRequestEvent;
             if(leaderRequestEvent != null)
             {
+                Console.WriteLine($"Retreived 'LeaderRequestEvent' event (currentTerm: {leaderRequestEvent.CurrentTerm}, node: {leaderRequestEvent.Node.Id}).");
+
                 bool voteGranted = OtherNodeCanBeLeader(leaderRequestEvent);
                 if(voteGranted)
                 {
                     _consensusContext.LeaderNode = leaderRequestEvent.Node;
                     _consensusContext.CurrentTerm = leaderRequestEvent.CurrentTerm;
 
+                    Console.WriteLine($"Voted was granted for node: {leaderRequestEvent.Node.Id}.");
                     StopVoting();
                     _consensusContext.State = new Follower(_consensusContext);
                 }

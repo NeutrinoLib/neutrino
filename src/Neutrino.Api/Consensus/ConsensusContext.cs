@@ -17,17 +17,14 @@ namespace Neutrino.Api.Consensus
         private int _currentTerm = 1;
         private State _state;
         private readonly ApplicationParameters _applicationParameters;
-        private readonly ILogger<ConsensusContext> _logger;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly IList<NodeState> _nodeStates;
 
         public ConsensusContext(
             IOptions<ApplicationParameters> applicationParameters, 
-            ILogger<ConsensusContext> logger,
             IApplicationLifetime applicationLifetime)
         {
             _applicationParameters = applicationParameters.Value;
-            _logger = logger;
             _applicationLifetime = applicationLifetime;
 
             _applicationLifetime.ApplicationStopping.Register(DisposeResources);
@@ -47,7 +44,6 @@ namespace Neutrino.Api.Consensus
 
         public IResponse TriggerEvent(IEvent triggeredEvent)
         {
-            _logger.LogDebug($"Receive trigger event: '{triggeredEvent.GetType().Name}'.");
             return State.TriggerEvent(triggeredEvent);
         }
 
@@ -58,7 +54,7 @@ namespace Neutrino.Api.Consensus
                 _applicationParameters.MinElectionTimeout, 
                 _applicationParameters.MaxElectionTimeout);
 
-            _logger.LogInformation($"Election timeout was calculated: {_electionTimeout}");
+            Console.WriteLine($"Election timeout was calculated: {_electionTimeout}");
         }
 
         public Node LeaderNode { get; set; }
@@ -84,7 +80,7 @@ namespace Neutrino.Api.Consensus
             set
             {
                 _state = value;
-                _logger.LogInformation($"Node is now in '{_state.GetType().Name}' state.");
+                Console.WriteLine($"Node is now in '{_state.GetType().Name}' state.");
 
                 _state.Proceed();
             }
