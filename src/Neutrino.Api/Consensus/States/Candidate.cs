@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Neutrino.Api.Consensus.Events;
 using Neutrino.Api.Consensus.Responses;
@@ -14,13 +16,17 @@ namespace Neutrino.Api.Consensus.States
     public class Candidate : State
     {
         private bool disposedValue = false;
+        private int _lastVoting = int.MaxValue;
         private readonly HttpClient _httpClient;
         private readonly IConsensusContext _consensusContext;
+        private CancellationTokenSource _votingTokenSource;
 
         public Candidate(IConsensusContext consensusContext)
         {
             _consensusContext = consensusContext;
             _httpClient = new HttpClient();
+
+            ClearVoteGranted();
         }
 
         public override void Proceed()
@@ -28,9 +34,25 @@ namespace Neutrino.Api.Consensus.States
             OpenVoting();
         }
 
-        public override string ToString()
+        public override IResponse TriggerEvent(IEvent triggeredEvent)
         {
-            return $"Candidate";
+            var leaderRequestEvent = triggeredEvent as LeaderRequestEvent;
+            if(leaderRequestEvent != null)
+            {
+                bool voteGranted = OtherNodeCanBeLeader(leaderRequestEvent);
+                if(voteGranted)
+                {
+                    _consensusContext.LeaderNode = leaderRequestEvent.Node;
+                    _consensusContext.CurrentTerm = leaderRequestEvent.CurrentTerm;
+
+                    StopVoting();
+                    _consensusContext.State = new Follower(_consensusContext);
+                }
+                
+                return new VoteResponse(voteGranted, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
+            }
+
+            return new EmptyResponse();
         }
 
         public override void Dispose()
@@ -42,46 +64,70 @@ namespace Neutrino.Api.Consensus.States
         {
             _consensusContext.CurrentTerm++;
 
-            if (_consensusContext.Nodes == null || _consensusContext.Nodes.Length == 0)
+            if (_consensusContext.NodeStates == null || _consensusContext.NodeStates.Count == 0)
             {
                 _consensusContext.State = new Leader(_consensusContext);
                 return;
             }
 
-            List<Task<HttpResponseMessage>> tasks = SendLeaderRequestVotes();
-            int votesNumber = CalculateVotes(tasks);
+            _votingTokenSource = new CancellationTokenSource();
+            Task.Run(() => StartVoting(_votingTokenSource.Token), _votingTokenSource.Token);
+        }
 
-            if (CurrentNodeCanBeLeader(votesNumber, _consensusContext.Nodes))
+        private void StopVoting()
+        {
+            _votingTokenSource.Cancel();
+        }
+
+        private void StartVoting(CancellationToken token)
+        {
+            while(!token.IsCancellationRequested) 
             {
-                _consensusContext.State = new Leader(_consensusContext);
-            }
-            else
-            {
-                _consensusContext.State = new Follower(_consensusContext);
+                if(_lastVoting > _consensusContext.ElectionTimeout)
+                {
+                    var tasks = SendLeaderRequestVotes();
+                    CollectVotes(tasks);
+
+                    if (CurrentNodeCanBeLeader())
+                    {
+                        _consensusContext.State = new Leader(_consensusContext);
+                        break;
+                    }
+
+                    _lastVoting = 0;
+                }
+
+                Thread.Sleep(50);
+                _lastVoting += 50;
             }
         }
 
-        private int CalculateVotes(List<Task<HttpResponseMessage>> tasks)
+        private void CollectVotes(List<Task<HttpResponseMessage>> tasks)
         {
-            int votesNumber = 0;
             foreach (var task in tasks)
             {
                 if (task.Status == TaskStatus.RanToCompletion && task.Result.IsSuccessStatusCode)
                 {
                     var responseContent = task.Result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
                     var nodeVote = JsonConvert.DeserializeObject<VoteResponse>(responseContent);
-                    if (nodeVote.VoteValue)
+                    _consensusContext.CurrentTerm = nodeVote.CurrentTerm;
+
+                    var nodeState = _consensusContext.NodeStates.FirstOrDefault(x => x.Node.Id == nodeVote.Node.Id);
+                    if(nodeState != null)
                     {
-                        votesNumber++;
+                        nodeState.VoteGranted = nodeVote.VoteGranted;
                     }
                 }
-                else
-                {
-                    votesNumber++;
-                }
             }
+        }
 
-            return votesNumber;
+        private void ClearVoteGranted()
+        {
+            foreach (var nodeState in _consensusContext.NodeStates)
+            {
+                nodeState.VoteGranted = false;
+            }
         }
 
         private List<Task<HttpResponseMessage>> SendLeaderRequestVotes()
@@ -89,9 +135,9 @@ namespace Neutrino.Api.Consensus.States
             var tasks = new List<Task<HttpResponseMessage>>();
             try
             {
-                foreach (var node in _consensusContext.Nodes)
+                foreach (var nodeState in _consensusContext.NodeStates.Where(x => x.VoteGranted == false))
                 {
-                    var task = SendLeaderRequestVote(node);
+                    var task = SendLeaderRequestVote(nodeState.Node);
                     tasks.Add(task);
                 }
 
@@ -118,9 +164,15 @@ namespace Neutrino.Api.Consensus.States
             return task;
         }
 
-        private bool CurrentNodeCanBeLeader(int votesNumber, Node[] nodes)
+        private bool CurrentNodeCanBeLeader()
         {
-            return (votesNumber * 2) >= nodes.Length;
+            var amountOfGrantedVotes = _consensusContext.NodeStates.Count(x => x.VoteGranted);
+            return (amountOfGrantedVotes * 2) >= _consensusContext.NodeStates.Count;
+        }
+
+        private bool OtherNodeCanBeLeader(LeaderRequestEvent leaderRequestEvent)
+        {
+            return leaderRequestEvent.CurrentTerm > _consensusContext.CurrentTerm;
         }
 
         protected virtual void Dispose(bool disposing)

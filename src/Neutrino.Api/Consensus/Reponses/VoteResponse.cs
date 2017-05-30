@@ -1,12 +1,18 @@
+using Neutrino.Entities;
+
 namespace Neutrino.Api.Consensus.Responses
 {
     public class VoteResponse : IResponse
     {
-        public bool VoteValue { get; set; }
+        public Node Node { get; set; }
+        public int CurrentTerm { get; set; }
+        public bool VoteGranted { get; set; }
 
-        public VoteResponse(bool voteValue)
+        public VoteResponse(bool voteGranted, int currentTerm, Node node)
         {
-            VoteValue = voteValue;
+            VoteGranted = voteGranted;
+            CurrentTerm = currentTerm;
+            Node = node;
         }
     }
 }

@@ -9,15 +9,9 @@ namespace Neutrino.Api.Consensus.States
     public class Follower : State
     {
         private bool disposedValue = false;
-        private static int _electionTimeout;
         private int _lastRertievedHeartbeat = 0;
         private CancellationTokenSource _checkHeartbeatTokenSource;
         private readonly IConsensusContext _consensusContext;
-
-        static Follower()
-        {
-            RandomElectionTimeout();
-        }
 
         public Follower(IConsensusContext consensusContext)
         {
@@ -50,26 +44,15 @@ namespace Neutrino.Api.Consensus.States
                     _consensusContext.CurrentTerm = leaderRequestEvent.CurrentTerm;
                 }
 
-                return new VoteResponse(voteValue);
+                return new VoteResponse(voteValue, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
             }
 
-            return base.TriggerEvent(triggeredEvent);
-        }
-
-        public override string ToString()
-        {
-            return $"Follower";
+            return new EmptyResponse();
         }
 
         public override void Dispose()
         {
             Dispose(true);
-        }
-
-        private static void RandomElectionTimeout()
-        {
-            var random = new Random();
-            _electionTimeout = random.Next(600, 1000);
         }
 
         private void StartCheckingHeartbeats()
@@ -87,7 +70,7 @@ namespace Neutrino.Api.Consensus.States
         {
             while(!token.IsCancellationRequested) 
             {
-                if(_lastRertievedHeartbeat > _electionTimeout)
+                if(_lastRertievedHeartbeat > _consensusContext.ElectionTimeout)
                 {
                     StopCheckingHeartbeat();
                     _consensusContext.State = new Candidate(_consensusContext);

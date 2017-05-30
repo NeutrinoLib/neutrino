@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Neutrino.Api.Consensus.Events;
 using Neutrino.Api.Consensus.Responses;
 using Neutrino.Api.Consensus.States;
@@ -11,11 +12,13 @@ namespace Neutrino.Api.Consensus
 
         int CurrentTerm { get; set; }
 
+        int ElectionTimeout { get; }
+
         State State { get; set; }
 
         Node CurrentNode { get; }
 
-        Node[] Nodes { get; }
+        IList<NodeState> NodeStates { get; }
 
         void Run();
 

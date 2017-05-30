@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Neutrino.Api.Consensus.Events;
+using Neutrino.Api.Consensus.Responses;
 using Neutrino.Entities;
 using Newtonsoft.Json;
 
@@ -32,9 +33,15 @@ namespace Neutrino.Api.Consensus.States
             StartSendingHeartbeats();
         }
 
-        public override string ToString()
+        public override IResponse TriggerEvent(IEvent triggeredEvent)
         {
-            return $"Leader";
+            var leaderRequestEvent = triggeredEvent as LeaderRequestEvent;
+            if(leaderRequestEvent != null)
+            {
+                return new VoteResponse(false, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
+            }
+
+            return new EmptyResponse();
         }
 
         public override void Dispose()
@@ -71,9 +78,9 @@ namespace Neutrino.Api.Consensus.States
         private void SendHeartbeats()
         {
             var tasks = new List<Task<HttpResponseMessage>>();
-            foreach(var node in _consensusContext.Nodes)
+            foreach(var nodeState in _consensusContext.NodeStates)
             {
-                var task = SendHeartbeat(node);
+                var task = SendHeartbeat(nodeState.Node);
                 tasks.Add(task);
             }
         }
