@@ -15,7 +15,6 @@ namespace Neutrino.Api.Consensus.States
 {
     public class Candidate : State
     {
-        private bool disposedValue = false;
         private int _lastVoting = int.MaxValue;
         private readonly HttpClient _httpClient;
         private readonly IConsensusContext _consensusContext;
@@ -55,15 +54,13 @@ namespace Neutrino.Api.Consensus.States
             return new EmptyResponse();
         }
 
-        public override void Dispose()
+        public override void DisposeCore()
         {
-            Dispose(true);
+            _httpClient.Dispose();
         }
 
         private void OpenVoting()
         {
-            _consensusContext.CurrentTerm++;
-
             if (_consensusContext.NodeStates == null || _consensusContext.NodeStates.Count == 0)
             {
                 _consensusContext.State = new Leader(_consensusContext);
@@ -83,8 +80,9 @@ namespace Neutrino.Api.Consensus.States
         {
             while(!token.IsCancellationRequested) 
             {
-                if(_lastVoting > _consensusContext.ElectionTimeout)
+                if(_lastVoting >= _consensusContext.ElectionTimeout)
                 {
+                    _consensusContext.CurrentTerm++;
                     var tasks = SendLeaderRequestVotes();
                     CollectVotes(tasks);
 
@@ -106,6 +104,8 @@ namespace Neutrino.Api.Consensus.States
         {
             foreach (var task in tasks)
             {
+                Console.WriteLine($"RAN TO COMPLETION ({_consensusContext.CurrentTerm}): {task.Status}");
+
                 if (task.Status == TaskStatus.RanToCompletion && task.Result.IsSuccessStatusCode)
                 {
                     var responseContent = task.Result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
@@ -141,7 +141,7 @@ namespace Neutrino.Api.Consensus.States
                     tasks.Add(task);
                 }
 
-                Task.WhenAll(tasks.ToArray()).GetAwaiter();
+                Task.WhenAll(tasks.ToArray()).GetAwaiter().GetResult();
             }
             catch (Exception)
             {
@@ -166,26 +166,15 @@ namespace Neutrino.Api.Consensus.States
 
         private bool CurrentNodeCanBeLeader()
         {
-            var amountOfGrantedVotes = _consensusContext.NodeStates.Count(x => x.VoteGranted);
-            return (amountOfGrantedVotes * 2) >= _consensusContext.NodeStates.Count;
+            var amountOfGrantedVotes = _consensusContext.NodeStates.Count(x => x.VoteGranted) + 1;
+            var allNodes = _consensusContext.NodeStates.Count + 1;
+
+            return (amountOfGrantedVotes * 2) >= allNodes;
         }
 
         private bool OtherNodeCanBeLeader(LeaderRequestEvent leaderRequestEvent)
         {
             return leaderRequestEvent.CurrentTerm > _consensusContext.CurrentTerm;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    _httpClient.Dispose();
-                }
-
-                disposedValue = true;
-            }
         }
     }
 }

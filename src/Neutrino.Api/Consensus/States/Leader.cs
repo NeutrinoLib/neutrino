@@ -14,8 +14,7 @@ namespace Neutrino.Api.Consensus.States
 {
     public class Leader : State
     {
-        private int _heartbeatTimeout = 400;
-        private int _lastSentHeartbeat = 0;
+        private int _lastSentHeartbeat = int.MaxValue;
         private readonly HttpClient _httpClient;
         private readonly IConsensusContext _consensusContext;
         private CancellationTokenSource _sendHeartbeatTokenSource;
@@ -44,9 +43,10 @@ namespace Neutrino.Api.Consensus.States
             return new EmptyResponse();
         }
 
-        public override void Dispose()
+        public override void DisposeCore()
         {
-            Dispose(true);
+            _sendHeartbeatTokenSource.Cancel();
+            _httpClient.Dispose();
         }
 
         private void StartSendingHeartbeats()
@@ -64,7 +64,7 @@ namespace Neutrino.Api.Consensus.States
         {
             while(!token.IsCancellationRequested) 
             {
-                if(_lastSentHeartbeat > _heartbeatTimeout)
+                if(_lastSentHeartbeat >= _consensusContext.HeartbeatTimeout)
                 {
                     SendHeartbeats();
                     _lastSentHeartbeat = 0;
@@ -97,22 +97,6 @@ namespace Neutrino.Api.Consensus.States
 
             var task = _httpClient.SendAsync(request);
             return task;
-        }
-
-        private bool disposedValue = false;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    _sendHeartbeatTokenSource.Cancel();
-                    _httpClient.Dispose();
-                }
-
-                disposedValue = true;
-            }
         }
     }
 }

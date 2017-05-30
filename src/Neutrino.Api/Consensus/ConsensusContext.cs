@@ -21,7 +21,6 @@ namespace Neutrino.Api.Consensus
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly IList<NodeState> _nodeStates;
 
-
         public ConsensusContext(
             IOptions<ApplicationParameters> applicationParameters, 
             ILogger<ConsensusContext> logger,
@@ -38,26 +37,28 @@ namespace Neutrino.Api.Consensus
             {
                 _nodeStates.Add(new NodeState { Node = node, VoteGranted = false});
             }
-
-            RandomElectionTimeout();
         }
 
         public void Run()
         {
+            RandomElectionTimeout();
             State = new Follower(this);
         }
 
         public IResponse TriggerEvent(IEvent triggeredEvent)
         {
-            //_logger.LogInformation($"Receive trigger event: '{triggeredEvent.GetType().Name}'.");
-            Console.WriteLine($"Receive trigger event: '{triggeredEvent.GetType().Name}'.");
+            _logger.LogDebug($"Receive trigger event: '{triggeredEvent.GetType().Name}'.");
             return State.TriggerEvent(triggeredEvent);
         }
 
         private void RandomElectionTimeout()
         {
             var random = new Random();
-            _electionTimeout = random.Next(800, 2000);
+            _electionTimeout = random.Next(
+                _applicationParameters.MinElectionTimeout, 
+                _applicationParameters.MaxElectionTimeout);
+
+            _logger.LogInformation($"Election timeout was calculated: {_electionTimeout}");
         }
 
         public Node LeaderNode { get; set; }
@@ -83,8 +84,7 @@ namespace Neutrino.Api.Consensus
             set
             {
                 _state = value;
-                //_logger.LogInformation($"Node is now in '{_state.GetType().Name}' state.");
-                Console.WriteLine($"Node is now in '{_state.GetType().Name}' state.");
+                _logger.LogInformation($"Node is now in '{_state.GetType().Name}' state.");
 
                 _state.Proceed();
             }
@@ -104,6 +104,11 @@ namespace Neutrino.Api.Consensus
             {
                 return _nodeStates;
             }
+        }
+
+        public int HeartbeatTimeout 
+        {
+            get { return _applicationParameters.HeartbeatTimeout; }
         }
 
         public int ElectionTimeout

@@ -14,6 +14,8 @@ namespace Neutrino.Api.Consensus
 
         int ElectionTimeout { get; }
 
+        int HeartbeatTimeout { get; }
+
         State State { get; set; }
 
         Node CurrentNode { get; }

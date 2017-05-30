@@ -8,7 +8,6 @@ namespace Neutrino.Api.Consensus.States
 {
     public class Follower : State
     {
-        private bool disposedValue = false;
         private int _lastRertievedHeartbeat = 0;
         private CancellationTokenSource _checkHeartbeatTokenSource;
         private readonly IConsensusContext _consensusContext;
@@ -42,6 +41,7 @@ namespace Neutrino.Api.Consensus.States
                 {
                     _consensusContext.LeaderNode = leaderRequestEvent.Node;
                     _consensusContext.CurrentTerm = leaderRequestEvent.CurrentTerm;
+                    _lastRertievedHeartbeat = 0;
                 }
 
                 return new VoteResponse(voteValue, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
@@ -50,9 +50,9 @@ namespace Neutrino.Api.Consensus.States
             return new EmptyResponse();
         }
 
-        public override void Dispose()
+        public override void DisposeCore()
         {
-            Dispose(true);
+            _checkHeartbeatTokenSource.Cancel();
         }
 
         private void StartCheckingHeartbeats()
@@ -70,7 +70,7 @@ namespace Neutrino.Api.Consensus.States
         {
             while(!token.IsCancellationRequested) 
             {
-                if(_lastRertievedHeartbeat > _consensusContext.ElectionTimeout)
+                if(_lastRertievedHeartbeat >= _consensusContext.ElectionTimeout)
                 {
                     StopCheckingHeartbeat();
                     _consensusContext.State = new Candidate(_consensusContext);
@@ -83,20 +83,7 @@ namespace Neutrino.Api.Consensus.States
 
         private bool OtherNodeCanBeLeader(LeaderRequestEvent leaderRequestEvent)
         {
-            return _consensusContext.CurrentTerm < leaderRequestEvent.CurrentTerm;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    _checkHeartbeatTokenSource.Cancel();
-                }
-
-                disposedValue = true;
-            }
+            return leaderRequestEvent.CurrentTerm >= _consensusContext.CurrentTerm;
         }
     }
 }
