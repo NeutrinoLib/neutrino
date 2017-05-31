@@ -34,7 +34,7 @@ namespace Neutrino.Api.Consensus
             _nodeStates = new List<NodeState>();
             foreach(var node in _applicationParameters.Nodes)
             {
-                _nodeStates.Add(new NodeState { Node = node, VoteGranted = false});
+                _nodeStates.Add(new NodeState { Node = node, VoteGranted = false });
             }
         }
 

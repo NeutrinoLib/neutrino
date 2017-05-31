@@ -47,14 +47,14 @@ namespace Neutrino.Api.Consensus.States
                     _consensusContext.NodeVote.LeaderNode = leaderRequestEvent.Node;
                     _consensusContext.NodeVote.VoteTerm = leaderRequestEvent.CurrentTerm;
 
-                    Console.WriteLine($"Votingfor node ({leaderRequestEvent.Node.Id}): GRANTED.");
+                    Console.WriteLine($"Voting for node ({leaderRequestEvent.Node.Id}): GRANTED.");
 
                     StopVoting();
                     _consensusContext.State = new Follower(_consensusContext);
                 }
                 else
                 {
-                    Console.WriteLine($"Votingfor node ({leaderRequestEvent.Node.Id}): NOT GRANTED.");
+                    Console.WriteLine($"Voting for node ({leaderRequestEvent.Node.Id}): NOT GRANTED.");
                 }
                 
                 return new VoteResponse(voteGranted, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
@@ -93,7 +93,13 @@ namespace Neutrino.Api.Consensus.States
                 {
                     _consensusContext.CurrentTerm++;
                     var tasks = SendLeaderRequestVotes();
-                    CollectVotes(tasks);
+                    
+                    if(!CollectVotes(tasks))
+                    {
+                        Console.WriteLine($"All other nodes are disabled. Current node can be a leader.");
+                        _consensusContext.State = new Leader(_consensusContext);
+                        break;
+                    }
 
                     if (CurrentNodeCanBeLeader())
                     {
@@ -109,8 +115,9 @@ namespace Neutrino.Api.Consensus.States
             }
         }
 
-        private void CollectVotes(List<Task<HttpResponseMessage>> tasks)
+        private bool CollectVotes(List<Task<HttpResponseMessage>> tasks)
         {
+            var amountOfFailed = 0;
             foreach (var task in tasks)
             {
                 if (task.Status == TaskStatus.RanToCompletion && task.Result.IsSuccessStatusCode)
@@ -131,8 +138,11 @@ namespace Neutrino.Api.Consensus.States
                 else
                 {
                     Console.WriteLine($"Vote failed with task status: {task.Status} (term: {_consensusContext.CurrentTerm}).");
+                    amountOfFailed++;
                 }
             }
+
+            return amountOfFailed < tasks.Count;
         }
 
         private void ClearVoteGranted()

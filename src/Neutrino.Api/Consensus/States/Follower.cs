@@ -48,11 +48,11 @@ namespace Neutrino.Api.Consensus.States
 
                     _lastRertievedHeartbeat = 0;
 
-                    Console.WriteLine($"Votingfor node ({leaderRequestEvent.Node.Id}): GRANTED.");
+                    Console.WriteLine($"Voting for node ({leaderRequestEvent.Node.Id}): GRANTED.");
                 }
                 else
                 {
-                    Console.WriteLine($"Votingfor node ({leaderRequestEvent.Node.Id}): NOT GRANTED.");
+                    Console.WriteLine($"Voting for node ({leaderRequestEvent.Node.Id}): NOT GRANTED.");
                 }
 
                 return new VoteResponse(voteValue, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
