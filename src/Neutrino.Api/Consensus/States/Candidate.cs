@@ -43,10 +43,12 @@ namespace Neutrino.Api.Consensus.States
                 bool voteGranted = OtherNodeCanBeLeader(leaderRequestEvent);
                 if(voteGranted)
                 {
-                    _consensusContext.LeaderNode = leaderRequestEvent.Node;
                     _consensusContext.CurrentTerm = leaderRequestEvent.CurrentTerm;
+                    _consensusContext.NodeVote.LeaderNode = leaderRequestEvent.Node;
+                    _consensusContext.NodeVote.VoteTerm = leaderRequestEvent.CurrentTerm;
 
                     Console.WriteLine($"Voted was granted for node: {leaderRequestEvent.Node.Id}.");
+                    
                     StopVoting();
                     _consensusContext.State = new Follower(_consensusContext);
                 }
@@ -177,7 +179,8 @@ namespace Neutrino.Api.Consensus.States
 
         private bool OtherNodeCanBeLeader(LeaderRequestEvent leaderRequestEvent)
         {
-            return leaderRequestEvent.CurrentTerm > _consensusContext.CurrentTerm;
+            return leaderRequestEvent.CurrentTerm > _consensusContext.CurrentTerm 
+                && leaderRequestEvent.CurrentTerm > _consensusContext.NodeVote.VoteTerm;
         }
     }
 }

@@ -27,8 +27,9 @@ namespace Neutrino.Api.Consensus.States
             var heartbeatEvent = triggeredEvent as HeartbeatEvent;
             if(heartbeatEvent != null)
             {
-                _consensusContext.LeaderNode = heartbeatEvent.Node;
                 _consensusContext.CurrentTerm = heartbeatEvent.CurrentTerm;
+                _consensusContext.NodeVote.LeaderNode = heartbeatEvent.Node;
+                _consensusContext.NodeVote.VoteTerm = 0;
                 _lastRertievedHeartbeat = 0;
                 return new EmptyResponse();
             }
@@ -41,8 +42,10 @@ namespace Neutrino.Api.Consensus.States
                 bool voteValue = OtherNodeCanBeLeader(leaderRequestEvent);
                 if(voteValue)
                 {
-                    _consensusContext.LeaderNode = leaderRequestEvent.Node;
                     _consensusContext.CurrentTerm = leaderRequestEvent.CurrentTerm;
+                    _consensusContext.NodeVote.LeaderNode = leaderRequestEvent.Node;
+                    _consensusContext.NodeVote.VoteTerm = leaderRequestEvent.CurrentTerm;
+
                     _lastRertievedHeartbeat = 0;
 
                     Console.WriteLine($"Voted was granted for node: {leaderRequestEvent.Node.Id}.");
@@ -87,7 +90,8 @@ namespace Neutrino.Api.Consensus.States
 
         private bool OtherNodeCanBeLeader(LeaderRequestEvent leaderRequestEvent)
         {
-            return leaderRequestEvent.CurrentTerm >= _consensusContext.CurrentTerm;
+            return leaderRequestEvent.CurrentTerm >= _consensusContext.CurrentTerm 
+                && leaderRequestEvent.CurrentTerm > _consensusContext.NodeVote.VoteTerm;
         }
     }
 }

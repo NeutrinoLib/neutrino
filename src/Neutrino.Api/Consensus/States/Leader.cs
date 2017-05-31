@@ -24,7 +24,8 @@ namespace Neutrino.Api.Consensus.States
             _consensusContext = consensusContext;
             _httpClient = new HttpClient();
 
-            _consensusContext.LeaderNode = _consensusContext.CurrentNode;
+            _consensusContext.NodeVote.LeaderNode = _consensusContext.CurrentNode;
+            _consensusContext.NodeVote.VoteTerm = 0;
         }
 
         public override void Proceed()

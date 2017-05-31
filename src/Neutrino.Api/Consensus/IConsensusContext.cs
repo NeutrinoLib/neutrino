@@ -8,8 +8,6 @@ namespace Neutrino.Api.Consensus
 {
     public interface IConsensusContext
     {
-        Node LeaderNode { get; set; }
-
         int CurrentTerm { get; set; }
 
         int ElectionTimeout { get; }
@@ -21,6 +19,8 @@ namespace Neutrino.Api.Consensus
         Node CurrentNode { get; }
 
         IList<NodeState> NodeStates { get; }
+
+        NodeVote NodeVote { get; }
 
         void Run();
 

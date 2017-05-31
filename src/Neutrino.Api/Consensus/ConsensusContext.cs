@@ -19,6 +19,7 @@ namespace Neutrino.Api.Consensus
         private readonly ApplicationParameters _applicationParameters;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly IList<NodeState> _nodeStates;
+        private readonly NodeVote _nodeVote;
 
         public ConsensusContext(
             IOptions<ApplicationParameters> applicationParameters, 
@@ -29,6 +30,7 @@ namespace Neutrino.Api.Consensus
 
             _applicationLifetime.ApplicationStopping.Register(DisposeResources);
 
+            _nodeVote = new NodeVote();
             _nodeStates = new List<NodeState>();
             foreach(var node in _applicationParameters.Nodes)
             {
@@ -110,6 +112,11 @@ namespace Neutrino.Api.Consensus
         public int ElectionTimeout
         {   
             get { return _electionTimeout; }
+        }
+
+        public NodeVote NodeVote 
+        { 
+            get { return _nodeVote; } 
         }
 
         protected void DisposeResources()
