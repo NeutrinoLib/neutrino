@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Neutrino.Api.Consensus.Events;
 using Neutrino.Api.Consensus.Responses;
 using Neutrino.Api.Consensus.States;
+using Neutrino.Consensus.Options;
 using Neutrino.Entities;
 
 namespace Neutrino.Api.Consensus
@@ -22,7 +23,7 @@ namespace Neutrino.Api.Consensus
 
         NodeVote NodeVote { get; }
 
-        void Run();
+        void Run(ConsensusOptions consensusOptions);
 
         IResponse TriggerEvent(IEvent triggeredEvent);
     }

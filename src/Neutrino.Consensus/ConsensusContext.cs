@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Neutrino.Api.Consensus.Events;
 using Neutrino.Api.Consensus.Responses;
 using Neutrino.Api.Consensus.States;
-using Neutrino.Core.Services.Parameters;
+using Neutrino.Consensus.Options;
 using Neutrino.Entities;
 
 namespace Neutrino.Api.Consensus
@@ -16,30 +16,28 @@ namespace Neutrino.Api.Consensus
         private int _electionTimeout;
         private int _currentTerm = 1;
         private State _state;
-        private readonly ApplicationParameters _applicationParameters;
+        private ConsensusOptions _consensusOptions;
+        private IList<NodeState> _nodeStates;
         private readonly IApplicationLifetime _applicationLifetime;
-        private readonly IList<NodeState> _nodeStates;
         private readonly NodeVote _nodeVote;
 
-        public ConsensusContext(
-            IOptions<ApplicationParameters> applicationParameters, 
-            IApplicationLifetime applicationLifetime)
+        public ConsensusContext(IApplicationLifetime applicationLifetime)
         {
-            _applicationParameters = applicationParameters.Value;
             _applicationLifetime = applicationLifetime;
-
             _applicationLifetime.ApplicationStopping.Register(DisposeResources);
-
             _nodeVote = new NodeVote();
+        }
+
+        public void Run(ConsensusOptions consensusOptions)
+        {
+            _consensusOptions = consensusOptions;
+
             _nodeStates = new List<NodeState>();
-            foreach(var node in _applicationParameters.Nodes)
+            foreach(var node in _consensusOptions.Nodes)
             {
                 _nodeStates.Add(new NodeState { Node = node, VoteGranted = false });
             }
-        }
 
-        public void Run()
-        {
             RandomElectionTimeout();
             State = new Follower(this);
         }
@@ -53,8 +51,8 @@ namespace Neutrino.Api.Consensus
         {
             var random = new Random();
             _electionTimeout = random.Next(
-                _applicationParameters.MinElectionTimeout, 
-                _applicationParameters.MaxElectionTimeout);
+                _consensusOptions.MinElectionTimeout, 
+                _consensusOptions.MaxElectionTimeout);
 
             Console.WriteLine($"Election timeout was calculated: {_electionTimeout}");
         }
@@ -92,7 +90,7 @@ namespace Neutrino.Api.Consensus
         {
             get
             {
-                return _applicationParameters.CurrentNode;
+                return _consensusOptions.CurrentNode;
             }
         }
 
@@ -106,7 +104,7 @@ namespace Neutrino.Api.Consensus
 
         public int HeartbeatTimeout 
         {
-            get { return _applicationParameters.HeartbeatTimeout; }
+            get { return _consensusOptions.HeartbeatTimeout; }
         }
 
         public int ElectionTimeout
