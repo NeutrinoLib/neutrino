@@ -69,7 +69,7 @@ namespace Neutrino.Api
 
             services.AddScoped<IServiceValidator, ServiceValidator>();
 
-            services.AddSingleton<IConsensusContext, ConsensusContext>();
+            services.AddConsensus();
         }
 
         public void Configure(
@@ -91,6 +91,9 @@ namespace Neutrino.Api
 
             app.UseCustomExceptionHandler();
 
+            app.UseConsensus();
+            consensusContext.Run();
+
             app.UseMvc();
 
             app.UseSwagger();
@@ -100,7 +103,7 @@ namespace Neutrino.Api
             });
 
             servicesService.RunHealthChecker();
-            consensusContext.Run();
+            
         }
     }
 }

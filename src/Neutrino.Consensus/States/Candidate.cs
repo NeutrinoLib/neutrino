@@ -175,7 +175,7 @@ namespace Neutrino.Api.Consensus.States
 
         private Task<HttpResponseMessage> SendLeaderRequestVote(Node node)
         {
-            var url = Path.Combine(node.Address, "api/consensus/leader");
+            var url = Path.Combine(node.Address, "api/raft/leader");
             var request = new HttpRequestMessage(HttpMethod.Post, url);
 
             var leaderRequest = new LeaderRequestEvent(_consensusContext.CurrentTerm, _consensusContext.CurrentNode);

@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="../Neutrino.Entities/Neutrino.Entities.csproj" />
     <ProjectReference Include="../Neutrino.Core/Neutrino.Core.csproj" />
+    <ProjectReference Include="../Neutrino.Consensus/Neutrino.Consensus.csproj" />
   </ItemGroup>
 
   <ItemGroup>

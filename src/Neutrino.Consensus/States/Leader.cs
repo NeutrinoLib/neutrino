@@ -88,7 +88,7 @@ namespace Neutrino.Api.Consensus.States
 
         private Task<HttpResponseMessage> SendHeartbeat(Node node)
         {
-            var url = Path.Combine(node.Address, "api/consensus/heartbeat");
+            var url = Path.Combine(node.Address, "api/raft/heartbeat");
             var request = new HttpRequestMessage(HttpMethod.Post, url);
 
             var hearbeatEvent = new HeartbeatEvent(_consensusContext.CurrentTerm, _consensusContext.CurrentNode);
