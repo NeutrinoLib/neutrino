@@ -33,9 +33,12 @@ namespace Neutrino.Api.Consensus
             _consensusOptions = consensusOptions;
 
             _nodeStates = new List<NodeState>();
-            foreach(var node in _consensusOptions.Nodes)
+            if(_consensusOptions.Nodes != null)
             {
-                _nodeStates.Add(new NodeState { Node = node, VoteGranted = false });
+                foreach(var node in _consensusOptions.Nodes)
+                {
+                    _nodeStates.Add(new NodeState { Node = node, VoteGranted = false });
+                }
             }
 
             RandomElectionTimeout();
