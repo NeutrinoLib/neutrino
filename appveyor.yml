@@ -37,12 +37,14 @@ build: off
 before_build:
   - appveyor-retry dotnet restore "src\Neutrino.Entities" -v Minimal
   - appveyor-retry dotnet restore "src\Neutrino.Core" -v Minimal
+  - appveyor-retry dotnet restore "src\Neutrino.Consensus" -v Minimal
   - appveyor-retry dotnet restore "src\Neutrino.Api" -v Minimal
   - appveyor-retry dotnet restore "test\Neutrino.Api.Specs" -v Minimal
 
 build_script:
   - dotnet build "src\Neutrino.Entities" -c %CONFIGURATION%
   - dotnet build "src\Neutrino.Core" -c %CONFIGURATION%
+  - dotnet build "src\Neutrino.Consensus" -c %CONFIGURATION%
   - dotnet build "src\Neutrino.Api" -c %CONFIGURATION%
   - dotnet build "test\Neutrino.Api.Specs" -c %CONFIGURATION%
 
