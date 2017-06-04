@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Neutrino.Consensus.Entities;
+using Neutrino.Consensus.Events;
 using Neutrino.Consensus.States;
 
 namespace Neutrino.Consensus.Options
@@ -10,6 +11,8 @@ namespace Neutrino.Consensus.Options
         public Action<State, State> OnStateChangingCallback { get; private set; }
 
         public Action<State, State> OnStateChangedCallback { get; private set; }
+
+        public Func<AppendEntriesEvent, bool> OnLogReplicationCallback { get; private set; }
 
         public IList<NodeInfo> Nodes { get; set; }
 
@@ -29,6 +32,11 @@ namespace Neutrino.Consensus.Options
         public void OnStateChanged(Action<State, State> callback)
         {
             OnStateChangedCallback = callback;
+        }
+
+        public void OnLogReplication(Func<AppendEntriesEvent, bool> callback)
+        {
+            OnLogReplicationCallback = callback;
         }
     }
 }

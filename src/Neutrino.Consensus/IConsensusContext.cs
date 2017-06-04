@@ -23,8 +23,8 @@ namespace Neutrino.Consensus
 
         NodeVote NodeVote { get; }
 
-        void Run(ConsensusOptions consensusOptions);
+        ConsensusOptions Options { get; }
 
-        IResponse TriggerEvent(IEvent triggeredEvent);
+        void Run(ConsensusOptions consensusOptions);
     }
 }

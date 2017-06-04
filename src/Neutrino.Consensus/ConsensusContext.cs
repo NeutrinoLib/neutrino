@@ -8,6 +8,7 @@ using Neutrino.Consensus.Events;
 using Neutrino.Consensus.Responses;
 using Neutrino.Consensus.States;
 using Neutrino.Consensus.Options;
+using Newtonsoft.Json;
 
 namespace Neutrino.Consensus
 {
@@ -43,11 +44,6 @@ namespace Neutrino.Consensus
 
             RandomElectionTimeout();
             State = new Follower(this);
-        }
-
-        public IResponse TriggerEvent(IEvent triggeredEvent)
-        {
-            return State.TriggerEvent(triggeredEvent);
         }
 
         private void RandomElectionTimeout()
@@ -122,6 +118,11 @@ namespace Neutrino.Consensus
         public NodeVote NodeVote 
         { 
             get { return _nodeVote; } 
+        }
+
+        public ConsensusOptions Options
+        {
+            get { return _consensusOptions; }
         }
 
         protected void DisposeResources()

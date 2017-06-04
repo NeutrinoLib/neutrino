@@ -31,7 +31,7 @@ namespace Neutrino.Consensus.States
                 _consensusContext.NodeVote.LeaderNode = appendEntriesEvent.LeaderNode;
                 _consensusContext.NodeVote.VoteTerm = 0;
                 _lastRertievedHeartbeat = 0;
-                return new EmptyResponse();
+                return new AppendEntriesResponse(_consensusContext.CurrentTerm, true);
             }
 
             var requestVoteEvent = triggeredEvent as RequestVoteEvent;

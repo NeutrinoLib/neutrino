@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Neutrino.Consensus;
+using Neutrino.Consensus.Entities;
 using Neutrino.Core.Infrastructure;
 using Neutrino.Core.Repositories;
 using Neutrino.Entities;
@@ -29,13 +31,16 @@ namespace Neutrino.Core.Services
 
         private readonly HttpClient _httpClient;
 
+        private readonly ILogReplication _logReplication;
+
         public HealthService(
             IRepository<Service> serviceRepository,
             IRepository<ServiceHealth> serviceHealthRepository, 
             ILogger<HealthService> logger, 
             IMemoryCache memoryCache,
             IApplicationLifetime applicationLifetime,
-            HttpClient httpClient)
+            HttpClient httpClient,
+            ILogReplication logReplication)
         {
             _serviceRepository = serviceRepository;
             _serviceHealthRepository = serviceHealthRepository;
@@ -43,6 +48,7 @@ namespace Neutrino.Core.Services
             _memoryCache = memoryCache;
             _applicationLifetime = applicationLifetime;
             _httpClient = httpClient;
+            _logReplication = logReplication;
 
             _applicationLifetime.ApplicationStopping.Register(DisposeResources);
             _tokenSources = new ConcurrentDictionary<string, CancellationTokenSource>();
@@ -108,7 +114,7 @@ namespace Neutrino.Core.Services
                 }
                 catch(Exception exception)
                 {
-                    CatchHealthError(service, serviceHealth, exception);
+                    await CatchHealthError(service, serviceHealth, exception);
                     criticalTime += interval;
                 }
                 finally
@@ -134,14 +140,14 @@ namespace Neutrino.Core.Services
             _tokenSources.Remove(key);
         }
 
-        private void CatchHealthError(Service service, ServiceHealth serviceHealth, Exception exception)
+        private async Task CatchHealthError(Service service, ServiceHealth serviceHealth, Exception exception)
         {
             serviceHealth.ResponseMessage = exception.Message;
             serviceHealth.HealthState = HealthState.Critical;
             serviceHealth.StatusCode = 0;
             serviceHealth.CreatedDate = DateTime.UtcNow;
 
-            AddServiceHealthToStore(serviceHealth);
+            await AddServiceHealthToStore(serviceHealth);
 
             _logger.LogError($"Health state of service '{service.Id}': {serviceHealth.HealthState}. Status code: {serviceHealth.StatusCode}. Message: '{serviceHealth.ResponseMessage}'.");
         }
@@ -158,12 +164,12 @@ namespace Neutrino.Core.Services
             serviceHealth.StatusCode = (int)httpResponseMessage.StatusCode;
             serviceHealth.CreatedDate = DateTime.UtcNow;
 
-            AddServiceHealthToStore(serviceHealth);
+            await AddServiceHealthToStore(serviceHealth);
 
             _logger.LogInformation($"Health state of service '{service.Id}': {serviceHealth.HealthState}. Status code: {serviceHealth.StatusCode}. Message: '{serviceHealth.ResponseMessage}'.");
         }
 
-        private void AddServiceHealthToStore(ServiceHealth serviceHealth)
+        private async Task AddServiceHealthToStore(ServiceHealth serviceHealth)
         {
             var newServiceHealth = new ServiceHealth
             {
@@ -175,7 +181,11 @@ namespace Neutrino.Core.Services
                 ServiceId = serviceHealth.ServiceId
             };
 
-            _serviceHealthRepository.Create(newServiceHealth);
+            var consensusResult = await _logReplication.DistributeEntry(newServiceHealth, MethodType.Create);
+            if(consensusResult.WasSuccessful)
+            {
+                _serviceHealthRepository.Create(newServiceHealth);
+            }
         }
 
         private string GetKey(string serviceId)

@@ -20,6 +20,7 @@ using Neutrino.Core.Services;
 using Neutrino.Core.Services.Parameters;
 using Neutrino.Core.Services.Validators;
 using Neutrino.Entities;
+using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace Neutrino.Api
@@ -81,6 +82,7 @@ namespace Neutrino.Api
             IHostingEnvironment env, 
             ILoggerFactory loggerFactory,
             IServicesService servicesService,
+            IServiceHealthService serviceHealthService,
             IOptions<ApplicationParameters> applicationParameters)
         {
             if(env.IsDevelopment())
@@ -117,6 +119,40 @@ namespace Neutrino.Api
                         servicesService.RunHealthChecker();
                     }
                 });
+                options.OnLogReplication((append) => {
+                    var service1 = serviceHealthService;
+                    var service2 = servicesService;
+
+                    if(append.Entries != null && append.Entries.Count > 0)
+                    {
+                        foreach(var item in append.Entries)
+                        {
+                            if(item.ObjectType == typeof(ServiceHealth).FullName)
+                            {
+                                var serviceHealth = JsonConvert.DeserializeObject<ServiceHealth>(item.Value.ToString());
+                                serviceHealth.Create(serviceHealth.ServiceId, serviceHealth);
+                            }
+                            else if(item.ObjectType == typeof(Service).FullName)
+                            {
+                                var service = JsonConvert.DeserializeObject<Service>(item.Value.ToString());
+                                switch(item.Method)
+                                {
+                                    case MethodType.Create:
+                                        service2.Create(service);
+                                        break;
+                                    case MethodType.Update:
+                                        service2.Update(service);
+                                        break;
+                                    case MethodType.Delete:
+                                        service2.Delete(service.ServiceId);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+
+                    return true;
+                });
             });
 
             app.UseMvc();
@@ -140,6 +176,11 @@ namespace Neutrino.Api
 
         private NodeInfo CreateNodeInfo(Node node)
         {
+            if(node == null)
+            {
+                return null;
+            }
+
             return new NodeInfo 
             {
                 Id = node.Id,

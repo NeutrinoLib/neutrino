@@ -9,6 +9,10 @@ namespace Neutrino.Consensus.Events
         
         public NodeInfo Node { get; set; }
 
+        public RequestVoteEvent()
+        {
+        }
+
         public RequestVoteEvent(int term, NodeInfo node)
         {
             Term = term;

@@ -17,7 +17,6 @@ namespace Neutrino.Entities
 
         public string ResponseMessage { get; set; } 
 
-        [JsonIgnore]
         public string ServiceId { get; set; }
     }
 }
