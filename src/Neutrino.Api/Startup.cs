@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Neutrino.Consensus;
 using Neutrino.Consensus.Entities;
+using Neutrino.Consensus.Options;
+using Neutrino.Consensus.States;
 using Neutrino.Core.Diagnostics;
 using Neutrino.Core.Infrastructure;
 using Neutrino.Core.Repositories;
@@ -99,6 +101,22 @@ namespace Neutrino.Api
                 options.MinElectionTimeout = applicationParameters.Value.MinElectionTimeout;
                 options.MaxElectionTimeout = applicationParameters.Value.MaxElectionTimeout;
                 options.HeartbeatTimeout = applicationParameters.Value.HeartbeatTimeout;
+                options.OnStateChanging((oldState, newState) => 
+                {
+                    var service = servicesService;
+                    if(!(newState is Leader))
+                    {
+                        servicesService.StopHealthChecker();
+                    }
+                });
+                options.OnStateChanged((oldState, newState) => 
+                {
+                    var service = servicesService;
+                    if(newState is Leader)
+                    {
+                        servicesService.RunHealthChecker();
+                    }
+                });
             });
 
             app.UseMvc();
@@ -108,8 +126,6 @@ namespace Neutrino.Api
             {
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
             });
-
-            servicesService.RunHealthChecker();
         }
 
         private IList<NodeInfo> CreateNodesInfo(Node[] nodes)

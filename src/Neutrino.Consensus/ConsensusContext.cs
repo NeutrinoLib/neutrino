@@ -82,10 +82,14 @@ namespace Neutrino.Consensus
             get { return _state; }
             set
             {
+                var oldState = _state;
+                _consensusOptions.OnStateChangingCallback?.Invoke(oldState, value);
+
                 _state = value;
                 Console.WriteLine($"Node is now in '{_state.GetType().Name}' state.");
-
                 _state.Proceed();
+
+                _consensusOptions.OnStateChangedCallback?.Invoke(oldState, value);
             }
         }
 

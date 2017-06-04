@@ -96,5 +96,14 @@ namespace Neutrino.Core.Services
                 _healthService.RunHealthChecker(service);
             }
         }
+
+        public void StopHealthChecker()
+        {
+            var services = _serviceRepository.Get(x => x.HealthCheck.HealthCheckType == HealthCheckType.HttpRest);
+            foreach(var service in services)
+            {
+                _healthService.StopHealthChecker(service.Id);
+            }
+        }
     }
 }
