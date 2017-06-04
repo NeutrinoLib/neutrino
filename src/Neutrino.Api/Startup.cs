@@ -9,7 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Neutrino.Api.Consensus;
+using Neutrino.Consensus;
+using Neutrino.Consensus.Entities;
 using Neutrino.Core.Diagnostics;
 using Neutrino.Core.Infrastructure;
 using Neutrino.Core.Repositories;
@@ -93,8 +94,8 @@ namespace Neutrino.Api
             app.UseCustomExceptionHandler();
 
             app.UseConsensus(options => {
-                options.CurrentNode = applicationParameters.Value.CurrentNode;
-                options.Nodes = applicationParameters.Value.Nodes;
+                options.CurrentNode = CreateNodeInfo(applicationParameters.Value.CurrentNode);
+                options.Nodes = CreateNodesInfo(applicationParameters.Value.Nodes);
                 options.MinElectionTimeout = applicationParameters.Value.MinElectionTimeout;
                 options.MaxElectionTimeout = applicationParameters.Value.MaxElectionTimeout;
                 options.HeartbeatTimeout = applicationParameters.Value.HeartbeatTimeout;
@@ -109,6 +110,27 @@ namespace Neutrino.Api
             });
 
             servicesService.RunHealthChecker();
+        }
+
+        private IList<NodeInfo> CreateNodesInfo(Node[] nodes)
+        {
+            if(nodes == null || nodes.Length == 0)
+            {
+                return new List<NodeInfo>();
+            }
+
+            return nodes.Select(x => CreateNodeInfo(x)).ToList();
+        }
+
+        private NodeInfo CreateNodeInfo(Node node)
+        {
+            return new NodeInfo 
+            {
+                Id = node.Id,
+                Address = node.Address,
+                Name = node.Name,
+                Datacenter = node.Datacenter
+            };
         }
     }
 }

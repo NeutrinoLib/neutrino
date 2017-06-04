@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Neutrino.Consensus.Options;
 
-namespace Neutrino.Api.Consensus
+namespace Neutrino.Consensus
 {
     public static class ConsensusMiddlewareExtensions
     {

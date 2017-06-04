@@ -1,4 +1,4 @@
-namespace Neutrino.Api.Consensus.Responses
+namespace Neutrino.Consensus.Responses
 {
     public class EmptyResponse: IResponse
     {

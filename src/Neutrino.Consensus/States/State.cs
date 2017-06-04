@@ -1,8 +1,8 @@
 using System;
-using Neutrino.Api.Consensus.Events;
-using Neutrino.Api.Consensus.Responses;
+using Neutrino.Consensus.Events;
+using Neutrino.Consensus.Responses;
 
-namespace Neutrino.Api.Consensus.States
+namespace Neutrino.Consensus.States
 {
     public abstract class State : IDisposable
     {

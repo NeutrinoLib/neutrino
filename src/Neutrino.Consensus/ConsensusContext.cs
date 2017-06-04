@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Neutrino.Api.Consensus.Events;
-using Neutrino.Api.Consensus.Responses;
-using Neutrino.Api.Consensus.States;
+using Neutrino.Consensus.Entities;
+using Neutrino.Consensus.Events;
+using Neutrino.Consensus.Responses;
+using Neutrino.Consensus.States;
 using Neutrino.Consensus.Options;
-using Neutrino.Entities;
 
-namespace Neutrino.Api.Consensus
+namespace Neutrino.Consensus
 {
     public class ConsensusContext : IConsensusContext
     {
@@ -60,7 +60,7 @@ namespace Neutrino.Api.Consensus
             Console.WriteLine($"Election timeout was calculated: {_electionTimeout}");
         }
 
-        public Node LeaderNode { get; set; }
+        public NodeInfo LeaderNode { get; set; }
 
         public int CurrentTerm 
         { 
@@ -89,7 +89,7 @@ namespace Neutrino.Api.Consensus
             }
         }
 
-        public Node CurrentNode
+        public NodeInfo CurrentNode
         {
             get
             {

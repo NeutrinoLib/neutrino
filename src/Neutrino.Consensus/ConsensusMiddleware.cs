@@ -5,10 +5,10 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Neutrino.Api.Consensus.Events;
+using Neutrino.Consensus.Events;
 using Newtonsoft.Json;
 
-namespace Neutrino.Api.Consensus
+namespace Neutrino.Consensus
 {
     public class ConsensusMiddleware
     {
@@ -21,29 +21,29 @@ namespace Neutrino.Api.Consensus
 
         public async Task Invoke(HttpContext context, IConsensusContext consensusContext)
         {
-            // if specific condition does not meet
-            if (context.Request.Path.ToString().Equals("/api/raft/heartbeat"))
+            var path = context.Request.Path.ToString();
+            if (string.Equals(path, "/api/raft/append-entries", StringComparison.CurrentCultureIgnoreCase))
             {
                 using (var bodyReader = new StreamReader(context.Request.Body))
                 {
                     string body = await bodyReader.ReadToEndAsync();
-                    var entity = JsonConvert.DeserializeObject<HeartbeatEvent>(body);
+                    var entity = JsonConvert.DeserializeObject<AppendEntriesEvent>(body);
 
                     var response = consensusContext.TriggerEvent(entity);
                     context.Response.StatusCode = (int) HttpStatusCode.OK;
                 }
             }
-            else if(context.Request.Path.ToString().Equals("/api/raft/leader"))
+            else if (string.Equals(path, "/api/raft/request-vote", StringComparison.CurrentCultureIgnoreCase))
             {
                 using (var bodyReader = new StreamReader(context.Request.Body))
                 {
                     string body = await bodyReader.ReadToEndAsync();
-                    var entity = JsonConvert.DeserializeObject<LeaderRequestEvent>(body);
+                    var entity = JsonConvert.DeserializeObject<RequestVoteEvent>(body);
 
                     var response = consensusContext.TriggerEvent(entity);
                     var responseString = JsonConvert.SerializeObject(response);
 
-                    context.Response.ContentType = new MediaTypeHeaderValue("application/json").ToString();
+                    context.Response.ContentType = "application/json";
                     context.Response.StatusCode = (int) HttpStatusCode.OK;
                     await context.Response.WriteAsync(responseString);
                 }

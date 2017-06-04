@@ -6,12 +6,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Neutrino.Api.Consensus.Events;
-using Neutrino.Api.Consensus.Responses;
-using Neutrino.Entities;
+using Neutrino.Consensus.Entities;
+using Neutrino.Consensus.Events;
+using Neutrino.Consensus.Responses;
 using Newtonsoft.Json;
 
-namespace Neutrino.Api.Consensus.States
+namespace Neutrino.Consensus.States
 {
     public class Candidate : State
     {
@@ -35,29 +35,29 @@ namespace Neutrino.Api.Consensus.States
 
         public override IResponse TriggerEvent(IEvent triggeredEvent)
         {
-            var leaderRequestEvent = triggeredEvent as LeaderRequestEvent;
-            if(leaderRequestEvent != null)
+            var requestVoteEvent = triggeredEvent as RequestVoteEvent;
+            if(requestVoteEvent != null)
             {
-                Console.WriteLine($"Retreived 'LeaderRequestEvent' event (currentTerm: {leaderRequestEvent.CurrentTerm}, node: {leaderRequestEvent.Node.Id}).");
+                Console.WriteLine($"Retreived 'LeaderRequestEvent' event (currentTerm: {requestVoteEvent.Term}, node: {requestVoteEvent.Node.Id}).");
 
-                bool voteGranted = OtherNodeCanBeLeader(leaderRequestEvent);
+                bool voteGranted = OtherNodeCanBeLeader(requestVoteEvent);
                 if(voteGranted)
                 {
-                    _consensusContext.CurrentTerm = leaderRequestEvent.CurrentTerm;
-                    _consensusContext.NodeVote.LeaderNode = leaderRequestEvent.Node;
-                    _consensusContext.NodeVote.VoteTerm = leaderRequestEvent.CurrentTerm;
+                    _consensusContext.CurrentTerm = requestVoteEvent.Term;
+                    _consensusContext.NodeVote.LeaderNode = requestVoteEvent.Node;
+                    _consensusContext.NodeVote.VoteTerm = requestVoteEvent.Term;
 
-                    Console.WriteLine($"Voting for node ({leaderRequestEvent.Node.Id}): GRANTED.");
+                    Console.WriteLine($"Voting for node ({requestVoteEvent.Node.Id}): GRANTED.");
 
                     StopVoting();
                     _consensusContext.State = new Follower(_consensusContext);
                 }
                 else
                 {
-                    Console.WriteLine($"Voting for node ({leaderRequestEvent.Node.Id}): NOT GRANTED.");
+                    Console.WriteLine($"Voting for node ({requestVoteEvent.Node.Id}): NOT GRANTED.");
                 }
                 
-                return new VoteResponse(voteGranted, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
+                return new RequestVoteResponse(voteGranted, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
             }
 
             return new EmptyResponse();
@@ -124,16 +124,16 @@ namespace Neutrino.Api.Consensus.States
                 {
                     var responseContent = task.Result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
-                    var nodeVote = JsonConvert.DeserializeObject<VoteResponse>(responseContent);
-                    _consensusContext.CurrentTerm = nodeVote.CurrentTerm;
+                    var requestVoteResponse = JsonConvert.DeserializeObject<RequestVoteResponse>(responseContent);
+                    _consensusContext.CurrentTerm = requestVoteResponse.CurrentTerm;
 
-                    var nodeState = _consensusContext.NodeStates.FirstOrDefault(x => x.Node.Id == nodeVote.Node.Id);
+                    var nodeState = _consensusContext.NodeStates.FirstOrDefault(x => x.Node.Id == requestVoteResponse.Node.Id);
                     if(nodeState != null)
                     {
-                        nodeState.VoteGranted = nodeVote.VoteGranted;
+                        nodeState.VoteGranted = requestVoteResponse.VoteGranted;
                     }
 
-                    Console.WriteLine($"Vote from node ({nodeVote.Node.Id}): {nodeVote.VoteGranted} (term: {_consensusContext.CurrentTerm}).");
+                    Console.WriteLine($"Vote from node ({requestVoteResponse.Node.Id}): {requestVoteResponse.VoteGranted} (term: {_consensusContext.CurrentTerm}).");
                 }
                 else
                 {
@@ -173,13 +173,13 @@ namespace Neutrino.Api.Consensus.States
             return tasks;
         }
 
-        private Task<HttpResponseMessage> SendLeaderRequestVote(Node node)
+        private Task<HttpResponseMessage> SendLeaderRequestVote(NodeInfo node)
         {
-            var url = Path.Combine(node.Address, "api/raft/leader");
+            var url = Path.Combine(node.Address, "api/raft/request-vote");
             var request = new HttpRequestMessage(HttpMethod.Post, url);
 
-            var leaderRequest = new LeaderRequestEvent(_consensusContext.CurrentTerm, _consensusContext.CurrentNode);
-            var jsonContent = JsonConvert.SerializeObject(leaderRequest);
+            var requestVoteEvent = new RequestVoteEvent(_consensusContext.CurrentTerm, _consensusContext.CurrentNode);
+            var jsonContent = JsonConvert.SerializeObject(requestVoteEvent);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             request.Content = content;
 
@@ -195,10 +195,10 @@ namespace Neutrino.Api.Consensus.States
             return (amountOfGrantedVotes * 2) >= allNodes;
         }
 
-        private bool OtherNodeCanBeLeader(LeaderRequestEvent leaderRequestEvent)
+        private bool OtherNodeCanBeLeader(RequestVoteEvent requestVoteEvent)
         {
-            return leaderRequestEvent.CurrentTerm > _consensusContext.CurrentTerm 
-                && leaderRequestEvent.CurrentTerm > _consensusContext.NodeVote.VoteTerm;
+            return requestVoteEvent.Term > _consensusContext.CurrentTerm 
+                && requestVoteEvent.Term > _consensusContext.NodeVote.VoteTerm;
         }
     }
 }

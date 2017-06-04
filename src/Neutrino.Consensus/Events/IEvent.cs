@@ -1,4 +1,4 @@
-namespace Neutrino.Api.Consensus.Events
+namespace Neutrino.Consensus.Events
 {
     public interface IEvent
     {

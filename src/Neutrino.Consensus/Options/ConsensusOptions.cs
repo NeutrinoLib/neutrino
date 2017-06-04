@@ -1,12 +1,13 @@
-using Neutrino.Entities;
+using System.Collections.Generic;
+using Neutrino.Consensus.Entities;
 
 namespace Neutrino.Consensus.Options
 {
     public class ConsensusOptions
     {
-        public Node[] Nodes { get; set; }
+        public IList<NodeInfo> Nodes { get; set; }
 
-        public Node CurrentNode { get; set; }
+        public NodeInfo CurrentNode { get; set; }
 
         public int MinElectionTimeout { get; set; }
         

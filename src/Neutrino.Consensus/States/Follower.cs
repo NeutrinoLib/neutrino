@@ -1,10 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Neutrino.Api.Consensus.Events;
-using Neutrino.Api.Consensus.Responses;
+using Neutrino.Consensus.Events;
+using Neutrino.Consensus.Responses;
 
-namespace Neutrino.Api.Consensus.States
+namespace Neutrino.Consensus.States
 {
     public class Follower : State
     {
@@ -24,38 +24,38 @@ namespace Neutrino.Api.Consensus.States
 
         public override IResponse TriggerEvent(IEvent triggeredEvent)
         {
-            var heartbeatEvent = triggeredEvent as HeartbeatEvent;
-            if(heartbeatEvent != null)
+            var appendEntriesEvent = triggeredEvent as AppendEntriesEvent;
+            if(appendEntriesEvent != null)
             {
-                _consensusContext.CurrentTerm = heartbeatEvent.CurrentTerm;
-                _consensusContext.NodeVote.LeaderNode = heartbeatEvent.Node;
+                _consensusContext.CurrentTerm = appendEntriesEvent.Term;
+                _consensusContext.NodeVote.LeaderNode = appendEntriesEvent.LeaderNode;
                 _consensusContext.NodeVote.VoteTerm = 0;
                 _lastRertievedHeartbeat = 0;
                 return new EmptyResponse();
             }
 
-            var leaderRequestEvent = triggeredEvent as LeaderRequestEvent;
-            if(leaderRequestEvent != null)
+            var requestVoteEvent = triggeredEvent as RequestVoteEvent;
+            if(requestVoteEvent != null)
             {
-                Console.WriteLine($"Retreived 'LeaderRequestEvent' event (currentTerm: {leaderRequestEvent.CurrentTerm}, node: {leaderRequestEvent.Node.Id}).");
+                Console.WriteLine($"Retreived 'LeaderRequestEvent' event (currentTerm: {requestVoteEvent.Term}, node: {requestVoteEvent.Node.Id}).");
 
-                bool voteValue = OtherNodeCanBeLeader(leaderRequestEvent);
+                bool voteValue = OtherNodeCanBeLeader(requestVoteEvent);
                 if(voteValue)
                 {
-                    _consensusContext.CurrentTerm = leaderRequestEvent.CurrentTerm;
-                    _consensusContext.NodeVote.LeaderNode = leaderRequestEvent.Node;
-                    _consensusContext.NodeVote.VoteTerm = leaderRequestEvent.CurrentTerm;
+                    _consensusContext.CurrentTerm = requestVoteEvent.Term;
+                    _consensusContext.NodeVote.LeaderNode = requestVoteEvent.Node;
+                    _consensusContext.NodeVote.VoteTerm = requestVoteEvent.Term;
 
                     _lastRertievedHeartbeat = 0;
 
-                    Console.WriteLine($"Voting for node ({leaderRequestEvent.Node.Id}): GRANTED.");
+                    Console.WriteLine($"Voting for node ({requestVoteEvent.Node.Id}): GRANTED.");
                 }
                 else
                 {
-                    Console.WriteLine($"Voting for node ({leaderRequestEvent.Node.Id}): NOT GRANTED.");
+                    Console.WriteLine($"Voting for node ({requestVoteEvent.Node.Id}): NOT GRANTED.");
                 }
 
-                return new VoteResponse(voteValue, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
+                return new RequestVoteResponse(voteValue, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
             }
 
             return new EmptyResponse();
@@ -92,10 +92,10 @@ namespace Neutrino.Api.Consensus.States
             }
         }
 
-        private bool OtherNodeCanBeLeader(LeaderRequestEvent leaderRequestEvent)
+        private bool OtherNodeCanBeLeader(RequestVoteEvent requestVoteEvent)
         {
-            return leaderRequestEvent.CurrentTerm >= _consensusContext.CurrentTerm 
-                && leaderRequestEvent.CurrentTerm > _consensusContext.NodeVote.VoteTerm;
+            return requestVoteEvent.Term >= _consensusContext.CurrentTerm 
+                && requestVoteEvent.Term > _consensusContext.NodeVote.VoteTerm;
         }
     }
 }

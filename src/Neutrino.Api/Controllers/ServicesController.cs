@@ -38,7 +38,7 @@ namespace Neutrino.Api
         }
 
         [HttpPost]
-        [ProducesResponseType(201)]
+        [ProducesResponseType(201, Type = typeof(Service))]
         [ProducesResponseType(400)]
         public ActionResult Post([FromBody]Service service)
         {

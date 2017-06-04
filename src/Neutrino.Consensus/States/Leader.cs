@@ -5,12 +5,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Neutrino.Api.Consensus.Events;
-using Neutrino.Api.Consensus.Responses;
-using Neutrino.Entities;
+using Neutrino.Consensus.Entities;
+using Neutrino.Consensus.Events;
+using Neutrino.Consensus.Responses;
 using Newtonsoft.Json;
 
-namespace Neutrino.Api.Consensus.States
+namespace Neutrino.Consensus.States
 {
     public class Leader : State
     {
@@ -35,10 +35,10 @@ namespace Neutrino.Api.Consensus.States
 
         public override IResponse TriggerEvent(IEvent triggeredEvent)
         {
-            var leaderRequestEvent = triggeredEvent as LeaderRequestEvent;
-            if(leaderRequestEvent != null)
+            var requestVoteEvent = triggeredEvent as RequestVoteEvent;
+            if(requestVoteEvent != null)
             {
-                return new VoteResponse(false, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
+                return new RequestVoteResponse(false, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
             }
 
             return new EmptyResponse();
@@ -86,13 +86,13 @@ namespace Neutrino.Api.Consensus.States
             }
         }
 
-        private Task<HttpResponseMessage> SendHeartbeat(Node node)
+        private Task<HttpResponseMessage> SendHeartbeat(NodeInfo node)
         {
-            var url = Path.Combine(node.Address, "api/raft/heartbeat");
+            var url = Path.Combine(node.Address, "api/raft/append-entries");
             var request = new HttpRequestMessage(HttpMethod.Post, url);
 
-            var hearbeatEvent = new HeartbeatEvent(_consensusContext.CurrentTerm, _consensusContext.CurrentNode);
-            var jsonContent = JsonConvert.SerializeObject(hearbeatEvent);
+            var appendEntriesEvent = new AppendEntriesEvent(_consensusContext.CurrentTerm, _consensusContext.CurrentNode);
+            var jsonContent = JsonConvert.SerializeObject(appendEntriesEvent);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             request.Content = content;
 
