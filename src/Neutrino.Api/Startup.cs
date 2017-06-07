@@ -130,21 +130,21 @@ namespace Neutrino.Api
                             if(item.ObjectType == typeof(ServiceHealth).FullName)
                             {
                                 var serviceHealth = JsonConvert.DeserializeObject<ServiceHealth>(item.Value.ToString());
-                                serviceHealth.Create(serviceHealth.ServiceId, serviceHealth);
+                                service1.Create(serviceHealth.ServiceId, serviceHealth);
                             }
                             else if(item.ObjectType == typeof(Service).FullName)
                             {
-                                var service = JsonConvert.DeserializeObject<Service>(item.Value.ToString());
+                                var serviceData = JsonConvert.DeserializeObject<Service>(item.Value.ToString());
                                 switch(item.Method)
                                 {
                                     case MethodType.Create:
-                                        service2.Create(service);
+                                        service2.Create(serviceData);
                                         break;
                                     case MethodType.Update:
-                                        service2.Update(service);
+                                        service2.Update(serviceData);
                                         break;
                                     case MethodType.Delete:
-                                        service2.Delete(service.ServiceId);
+                                        service2.Delete(serviceData.Id);
                                         break;
                                 }
                             }

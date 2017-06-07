@@ -125,6 +125,11 @@ namespace Neutrino.Consensus
             get { return _consensusOptions; }
         }
 
+        public bool IsLeader()
+        {
+            return State is Leader;
+        }
+
         protected void DisposeResources()
         {
             Console.WriteLine("Canceling consensus events...");

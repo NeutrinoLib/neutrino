@@ -26,5 +26,7 @@ namespace Neutrino.Consensus
         ConsensusOptions Options { get; }
 
         void Run(ConsensusOptions consensusOptions);
+
+        bool IsLeader();
     }
 }

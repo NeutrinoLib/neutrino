@@ -1,5 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Neutrino.Consensus;
+using Neutrino.Consensus.States;
 using Neutrino.Core.Services;
 using Neutrino.Entities;
 
@@ -9,10 +13,14 @@ namespace Neutrino.Api
     public class ServicesController : Controller
     {
         private readonly IServicesService _servicesService;
+        private readonly IConsensusContext _consensusContext;
 
-        public ServicesController(IServicesService servicesService)
+        public ServicesController(
+            IServicesService servicesService,
+            IConsensusContext consensusContext)
         {
             _servicesService = servicesService;
+            _consensusContext = consensusContext;
         }
 
         [HttpGet]
@@ -40,9 +48,14 @@ namespace Neutrino.Api
         [HttpPost]
         [ProducesResponseType(201, Type = typeof(Service))]
         [ProducesResponseType(400)]
-        public ActionResult Post([FromBody]Service service)
+        public async Task<ActionResult> Post([FromBody]Service service)
         {
-            var actionConfirmation = _servicesService.Create(service);
+            if(!_consensusContext.IsLeader())
+            {
+                return Redirect($"{_consensusContext.NodeVote.LeaderNode.Address}/api/services");
+            }
+
+            var actionConfirmation = await _servicesService.Create(service);
             if(actionConfirmation.WasSuccessful)
             {
                 return Created($"api/services/{service.Id}", service);
@@ -57,8 +70,13 @@ namespace Neutrino.Api
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
-        public ActionResult Put(string serviceId, [FromBody]Service service)
+        public async Task<ActionResult> Put(string serviceId, [FromBody]Service service)
         {
+            if(!_consensusContext.IsLeader())
+            {
+                return Redirect($"{_consensusContext.NodeVote.LeaderNode.Address}/api/services");
+            }
+
             var serviceFromStore = _servicesService.Get(serviceId);
             if(serviceFromStore == null)
             {
@@ -66,7 +84,7 @@ namespace Neutrino.Api
             }
 
             service.Id = serviceId;
-            var actionConfirmation = _servicesService.Update(service);
+            var actionConfirmation = await _servicesService.Update(service);
             if(actionConfirmation.WasSuccessful)
             {
                 return Ok();
@@ -80,15 +98,20 @@ namespace Neutrino.Api
         [HttpDelete("{serviceId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult Delete(string serviceId)
+        public async Task<ActionResult> Delete(string serviceId)
         {
+            if(!_consensusContext.IsLeader())
+            {
+                return Redirect($"{_consensusContext.NodeVote.LeaderNode.Address}/api/services");
+            }
+
             var service = _servicesService.Get(serviceId);
             if(service == null)
             {
                 return NotFound();
             }
 
-            _servicesService.Delete(serviceId);
+            await _servicesService.Delete(serviceId);
             return Ok();
         }
     }

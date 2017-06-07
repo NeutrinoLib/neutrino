@@ -8,6 +8,8 @@ using System.Threading;
 using Neutrino.Core.Repositories;
 using Neutrino.Core.Diagnostics.Exceptions;
 using Neutrino.Core.Services.Validators;
+using Neutrino.Consensus;
+using Neutrino.Consensus.Entities;
 
 namespace Neutrino.Core.Services
 {
@@ -21,16 +23,24 @@ namespace Neutrino.Core.Services
 
         private readonly IHealthService _healthService;
 
+        private readonly ILogReplication _logReplication;
+
+        private readonly IConsensusContext _consensusContext;
+
         public ServicesService(
             IRepository<Service> serviceRepository,
             IServiceValidator serviceValidator,
             IMemoryCache memoryCache, 
-            IHealthService healthService)
+            IHealthService healthService,
+            ILogReplication logReplication,
+            IConsensusContext consensusContext)
         {
             _serviceRepository = serviceRepository;
             _serviceValidator = serviceValidator;
             _memoryCache = memoryCache;
             _healthService = healthService;
+            _logReplication = logReplication;
+            _consensusContext = consensusContext;
         }
 
         public IEnumerable<Service> Get()
@@ -45,7 +55,7 @@ namespace Neutrino.Core.Services
             return service;
         }
 
-        public ActionConfirmation Create(Service service)
+        public async Task<ActionConfirmation> Create(Service service)
         {
             var validatorConfirmation = _serviceValidator.Validate(service, ActionType.Create);
             if(!validatorConfirmation.WasSuccessful)
@@ -53,17 +63,20 @@ namespace Neutrino.Core.Services
                 return validatorConfirmation;
             }
 
-            _serviceRepository.Create(service);
-
-            if(service.HealthCheck != null && service.HealthCheck.HealthCheckType == HealthCheckType.HttpRest)
+            var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Create);
+            if(consensusResult.WasSuccessful)
             {
-                _healthService.RunHealthChecker(service);
+                _serviceRepository.Create(service);
+                if (ShouldExecuteHealthChecking(service))
+                {
+                    _healthService.RunHealthChecker(service);
+                }
             }
 
             return ActionConfirmation.CreateSuccessful();
         }
 
-        public ActionConfirmation Update(Service service)
+        public async Task<ActionConfirmation> Update(Service service)
         {
             var validatorConfirmation = _serviceValidator.Validate(service, ActionType.Update);
             if(!validatorConfirmation.WasSuccessful)
@@ -71,21 +84,30 @@ namespace Neutrino.Core.Services
                 return validatorConfirmation;
             }
 
-            _serviceRepository.Update(service);
-            _healthService.StopHealthChecker(service.Id);
-
-            if(service.HealthCheck != null && service.HealthCheck.HealthCheckType == HealthCheckType.HttpRest)
+            var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Update);
+            if(consensusResult.WasSuccessful)
             {
-                _healthService.RunHealthChecker(service);
+                _serviceRepository.Update(service);
+                _healthService.StopHealthChecker(service.Id);
+
+                if(ShouldExecuteHealthChecking(service))
+                {
+                    _healthService.RunHealthChecker(service);
+                }
             }
 
             return ActionConfirmation.CreateSuccessful();
         }
 
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
-            _serviceRepository.Delete(id);
-            _healthService.StopHealthChecker(id);
+            var service = _serviceRepository.Get(id);
+            var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Delete);
+            if(consensusResult.WasSuccessful)
+            {
+                _serviceRepository.Delete(id);
+                _healthService.StopHealthChecker(id);
+            }
         }
 
         public void RunHealthChecker()
@@ -104,6 +126,13 @@ namespace Neutrino.Core.Services
             {
                 _healthService.StopHealthChecker(service.Id);
             }
+        }
+
+        private bool ShouldExecuteHealthChecking(Service service)
+        {
+            return _consensusContext.IsLeader() &&
+                    service.HealthCheck != null &&
+                    service.HealthCheck.HealthCheckType == HealthCheckType.HttpRest;
         }
     }
 }

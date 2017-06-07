@@ -125,19 +125,24 @@ namespace Neutrino.Core.Services
 
                 if(criticalTime >= deregisterServiceTime)
                 {
-                    DeregisterService(service);
+                    await DeregisterService(service);
                     break;
                 }
             }
         }
 
-        private void DeregisterService(Service service)
+        private async Task DeregisterService(Service service)
         {
-            _serviceRepository.Delete(service.Id);
             _logger.LogError($"Service '{service.Id}' is in critical state too long. Deregistering services.");
 
-            var key = GetKey(service.Id);
-            _tokenSources.Remove(key);
+            var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Delete);
+            if(consensusResult.WasSuccessful)
+            {
+                _serviceRepository.Delete(service.Id);
+            
+                var key = GetKey(service.Id);
+                _tokenSources.Remove(key);
+            }
         }
 
         private async Task CatchHealthError(Service service, ServiceHealth serviceHealth, Exception exception)
