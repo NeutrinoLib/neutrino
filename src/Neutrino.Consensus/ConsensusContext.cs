@@ -19,12 +19,17 @@ namespace Neutrino.Consensus
         private State _state;
         private ConsensusOptions _consensusOptions;
         private IList<NodeState> _nodeStates;
+        private readonly IStateObservable _stateObservable;
+        private readonly ILogReplicable _logReplicable;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly NodeVote _nodeVote;
 
-        public ConsensusContext(IApplicationLifetime applicationLifetime)
+        public ConsensusContext(IApplicationLifetime applicationLifetime, IStateObservable stateObservable, ILogReplicable logReplicable)
         {
             _applicationLifetime = applicationLifetime;
+            _stateObservable = stateObservable;
+            _logReplicable = logReplicable;
+
             _applicationLifetime.ApplicationStopping.Register(DisposeResources);
             _nodeVote = new NodeVote();
         }
@@ -79,13 +84,13 @@ namespace Neutrino.Consensus
             set
             {
                 var oldState = _state;
-                _consensusOptions.OnStateChangingCallback?.Invoke(oldState, value);
+                _stateObservable.OnStateChanging(oldState, value);
 
                 _state = value;
                 Console.WriteLine($"Node is now in '{_state.GetType().Name}' state.");
                 _state.Proceed();
 
-                _consensusOptions.OnStateChangedCallback?.Invoke(oldState, value);
+                _stateObservable.OnStateChanged(oldState, value);
             }
         }
 
@@ -120,9 +125,14 @@ namespace Neutrino.Consensus
             get { return _nodeVote; } 
         }
 
-        public ConsensusOptions Options
-        {
-            get { return _consensusOptions; }
+        public ILogReplicable LogReplicable 
+        { 
+            get { return _logReplicable; }
+        }
+
+        public IStateObservable StateObservable 
+        { 
+            get { return _stateObservable; }
         }
 
         public bool IsLeader()

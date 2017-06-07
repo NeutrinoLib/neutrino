@@ -65,8 +65,8 @@ namespace Neutrino.Consensus
                 IResponse response = null;
                 if (entity.Entries != null && entity.Entries.Count > 0)
                 {
-                    var isSuccessfull = consensusContext.Options.OnLogReplicationCallback?.Invoke(entity);
-                    response = new AppendEntriesResponse(consensusContext.CurrentTerm, isSuccessfull.HasValue ? isSuccessfull.Value : false);
+                    var isSuccessfull = consensusContext.LogReplicable.OnLogReplication(entity);
+                    response = new AppendEntriesResponse(consensusContext.CurrentTerm, isSuccessfull);
                 }
                 else
                 {

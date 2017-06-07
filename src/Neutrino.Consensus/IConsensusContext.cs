@@ -23,7 +23,9 @@ namespace Neutrino.Consensus
 
         NodeVote NodeVote { get; }
 
-        ConsensusOptions Options { get; }
+        ILogReplicable LogReplicable { get; }
+
+        IStateObservable StateObservable { get; }
 
         void Run(ConsensusOptions consensusOptions);
 

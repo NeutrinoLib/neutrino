@@ -74,7 +74,7 @@ namespace Neutrino.Api
 
             services.AddScoped<IServiceValidator, ServiceValidator>();
 
-            services.AddConsensus();
+            services.AddConsensus<StateObserverService, LogReplicationService>();
         }
 
         public void Configure(
@@ -103,56 +103,6 @@ namespace Neutrino.Api
                 options.MinElectionTimeout = applicationParameters.Value.MinElectionTimeout;
                 options.MaxElectionTimeout = applicationParameters.Value.MaxElectionTimeout;
                 options.HeartbeatTimeout = applicationParameters.Value.HeartbeatTimeout;
-                options.OnStateChanging((oldState, newState) => 
-                {
-                    var service = servicesService;
-                    if(!(newState is Leader))
-                    {
-                        servicesService.StopHealthChecker();
-                    }
-                });
-                options.OnStateChanged((oldState, newState) => 
-                {
-                    var service = servicesService;
-                    if(newState is Leader)
-                    {
-                        servicesService.RunHealthChecker();
-                    }
-                });
-                options.OnLogReplication((append) => {
-                    var service1 = serviceHealthService;
-                    var service2 = servicesService;
-
-                    if(append.Entries != null && append.Entries.Count > 0)
-                    {
-                        foreach(var item in append.Entries)
-                        {
-                            if(item.ObjectType == typeof(ServiceHealth).FullName)
-                            {
-                                var serviceHealth = JsonConvert.DeserializeObject<ServiceHealth>(item.Value.ToString());
-                                service1.Create(serviceHealth.ServiceId, serviceHealth);
-                            }
-                            else if(item.ObjectType == typeof(Service).FullName)
-                            {
-                                var serviceData = JsonConvert.DeserializeObject<Service>(item.Value.ToString());
-                                switch(item.Method)
-                                {
-                                    case MethodType.Create:
-                                        service2.Create(serviceData);
-                                        break;
-                                    case MethodType.Update:
-                                        service2.Update(serviceData);
-                                        break;
-                                    case MethodType.Delete:
-                                        service2.Delete(serviceData.Id);
-                                        break;
-                                }
-                            }
-                        }
-                    }
-
-                    return true;
-                });
             });
 
             app.UseMvc();

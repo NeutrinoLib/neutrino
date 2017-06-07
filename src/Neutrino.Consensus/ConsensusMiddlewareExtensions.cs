@@ -22,9 +22,14 @@ namespace Neutrino.Consensus
             return appBuilder;
         }
 
-        public static IServiceCollection AddConsensus(this IServiceCollection services)
+        public static IServiceCollection AddConsensus<TStateObservable, TLogReplicable>(this IServiceCollection services)
+            where TStateObservable : class, IStateObservable
+            where TLogReplicable : class, ILogReplicable
         {
             services.AddScoped<ILogReplication, LogReplication>();
+            services.AddScoped<IStateObservable, TStateObservable>();
+            services.AddScoped<ILogReplicable, TLogReplicable>();
+
             services.AddSingleton<HttpClient, HttpClient>();
             return services.AddSingleton<IConsensusContext, ConsensusContext>();
         }
