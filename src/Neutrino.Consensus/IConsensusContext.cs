@@ -27,7 +27,7 @@ namespace Neutrino.Consensus
 
         IStateObservable StateObservable { get; }
 
-        void Run(ConsensusOptions consensusOptions);
+        void Run(ConsensusOptions consensusOptions, IStateObservable stateObservable, ILogReplicable logReplicable);
 
         bool IsLeader();
     }

@@ -19,24 +19,24 @@ namespace Neutrino.Consensus
         private State _state;
         private ConsensusOptions _consensusOptions;
         private IList<NodeState> _nodeStates;
-        private readonly IStateObservable _stateObservable;
-        private readonly ILogReplicable _logReplicable;
+        private IStateObservable _stateObservable;
+        private ILogReplicable _logReplicable;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly NodeVote _nodeVote;
 
-        public ConsensusContext(IApplicationLifetime applicationLifetime, IStateObservable stateObservable, ILogReplicable logReplicable)
+        public ConsensusContext(IApplicationLifetime applicationLifetime)
         {
             _applicationLifetime = applicationLifetime;
-            _stateObservable = stateObservable;
-            _logReplicable = logReplicable;
 
             _applicationLifetime.ApplicationStopping.Register(DisposeResources);
             _nodeVote = new NodeVote();
         }
 
-        public void Run(ConsensusOptions consensusOptions)
+        public void Run(ConsensusOptions consensusOptions, IStateObservable stateObservable, ILogReplicable logReplicable)
         {
             _consensusOptions = consensusOptions;
+            _stateObservable = stateObservable;
+            _logReplicable = logReplicable;
 
             _nodeStates = new List<NodeState>();
             if(_consensusOptions.Nodes != null)

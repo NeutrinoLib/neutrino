@@ -17,7 +17,10 @@ namespace Neutrino.Consensus
             setupAction?.Invoke(options);
 
             var consensusContext = builder.ApplicationServices.GetService<IConsensusContext>();
-            consensusContext.Run(options);
+            var stateObservable = builder.ApplicationServices.GetService<IStateObservable>();
+            var logReplicable = builder.ApplicationServices.GetService<ILogReplicable>();
+
+            consensusContext.Run(options, stateObservable, logReplicable);
 
             return appBuilder;
         }
