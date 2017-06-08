@@ -62,15 +62,11 @@ namespace Neutrino.Api
             services.AddSingleton<IStoreContext, StoreContext>();
             services.AddSingleton<IHealthService, HealthService>();
 
-            services.AddScoped<IRepository<Node>, Repository<Node>>();
-            services.AddScoped<IRepository<NodeHealth>, Repository<NodeHealth>>();
             services.AddScoped<IRepository<Service>, Repository<Service>>();
             services.AddScoped<IRepository<ServiceHealth>, Repository<ServiceHealth>>();
 
-            services.AddScoped<INodesService, NodesService>();
             services.AddScoped<IServicesService, ServicesService>();
             services.AddScoped<IServiceHealthService, ServiceHealthService>();
-            services.AddScoped<INodeHealthService, NodeHealthService>();
 
             services.AddScoped<IServiceValidator, ServiceValidator>();
 
@@ -98,8 +94,8 @@ namespace Neutrino.Api
             app.UseCustomExceptionHandler();
 
             app.UseConsensus(options => {
-                options.CurrentNode = CreateNodeInfo(applicationParameters.Value.CurrentNode);
-                options.Nodes = CreateNodesInfo(applicationParameters.Value.Nodes);
+                options.CurrentNode = applicationParameters.Value.CurrentNode;
+                options.Nodes = applicationParameters.Value.Nodes;
                 options.MinElectionTimeout = applicationParameters.Value.MinElectionTimeout;
                 options.MaxElectionTimeout = applicationParameters.Value.MaxElectionTimeout;
                 options.HeartbeatTimeout = applicationParameters.Value.HeartbeatTimeout;
@@ -112,32 +108,6 @@ namespace Neutrino.Api
             {
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
             });
-        }
-
-        private IList<NodeInfo> CreateNodesInfo(Node[] nodes)
-        {
-            if(nodes == null || nodes.Length == 0)
-            {
-                return new List<NodeInfo>();
-            }
-
-            return nodes.Select(x => CreateNodeInfo(x)).ToList();
-        }
-
-        private NodeInfo CreateNodeInfo(Node node)
-        {
-            if(node == null)
-            {
-                return null;
-            }
-
-            return new NodeInfo 
-            {
-                Id = node.Id,
-                Address = node.Address,
-                Name = node.Name,
-                Datacenter = node.Datacenter
-            };
         }
     }
 }

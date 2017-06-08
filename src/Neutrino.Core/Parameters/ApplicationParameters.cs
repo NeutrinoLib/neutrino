@@ -1,3 +1,4 @@
+using Neutrino.Consensus.Entities;
 using Neutrino.Entities;
 
 namespace Neutrino.Core.Services.Parameters
@@ -12,8 +13,8 @@ namespace Neutrino.Core.Services.Parameters
 
         public ConnectionStrings ConnectionStrings { get; set; }
 
-        public Node[] Nodes { get; set; }
+        public NodeInfo[] Nodes { get; set; }
 
-        public Node CurrentNode { get; set; }
+        public NodeInfo CurrentNode { get; set; }
     }
 }
