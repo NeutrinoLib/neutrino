@@ -1,6 +1,9 @@
 
 # Created by https://www.gitignore.io/api/macos,linux,windows,visualstudio,visualstudiocode
 
+### Ignore xml documentation
+Neutrino.Api.xml
+
 ### LiteDB ###
 nosqlstore.db
 

@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.IO;
 using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.PlatformAbstractions;
 using Neutrino.Consensus;
-using Neutrino.Consensus.Entities;
-using Neutrino.Consensus.Options;
-using Neutrino.Consensus.States;
 using Neutrino.Core.Diagnostics;
 using Neutrino.Core.Infrastructure;
 using Neutrino.Core.Repositories;
@@ -20,28 +15,38 @@ using Neutrino.Core.Services;
 using Neutrino.Core.Services.Parameters;
 using Neutrino.Core.Services.Validators;
 using Neutrino.Entities;
-using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace Neutrino.Api
 {
+    /// <summary>
+    /// Web startup class.
+    /// </summary>
     public class Startup
     {
-        public Startup(IHostingEnvironment env)
+        private readonly IConfigurationRoot _configuration;
+
+        /// <summary>
+        /// Constructor which initilizes configuration.
+        /// </summary>
+        /// <param name="hostingEnvironment">Environment variables.</param>
+        public Startup(IHostingEnvironment hostingEnvironment)
         {
             var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
+                .SetBasePath(hostingEnvironment.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddJsonFile($"appsettings.{hostingEnvironment.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
-            Configuration = builder.Build();
+            _configuration = builder.Build();
         }
 
-        public IConfigurationRoot Configuration { get; }
-
+        /// <summary>
+        /// Configure dependency injection.
+        /// </summary>
+        /// <param name="services">Services.</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<ApplicationParameters>(Configuration);
+            services.Configure<ApplicationParameters>(_configuration);
 
             services.AddMvc();
 
@@ -56,6 +61,13 @@ namespace Neutrino.Api
                     Description = "Neutrino is minimalistic service discovery application.",
                     TermsOfService = "None"
                 });
+
+                var basePath = PlatformServices.Default.Application.ApplicationBasePath;
+                var xmlApiPath = Path.Combine(basePath, "Neutrino.Api.xml"); 
+                options.IncludeXmlComments(xmlApiPath);
+
+                var xmlEntitiesPath = Path.Combine(basePath, "Neutrino.Entities.xml"); 
+                options.IncludeXmlComments(xmlEntitiesPath);
             });
 
             services.AddSingleton<HttpClient, HttpClient>();
@@ -73,17 +85,22 @@ namespace Neutrino.Api
             services.AddConsensus<StateObserverService, LogReplicationService>();
         }
 
+        /// <summary>
+        /// Configure web application.
+        /// </summary>
+        /// <param name="applicationBuilder">Application builder.</param>
+        /// <param name="hostingEnvironment">Environment variables.</param>
+        /// <param name="loggerFactory">Logger.</param>
+        /// <param name="applicationParameters">Application parameters.</param>
         public void Configure(
-            IApplicationBuilder app, 
-            IHostingEnvironment env, 
+            IApplicationBuilder applicationBuilder, 
+            IHostingEnvironment hostingEnvironment, 
             ILoggerFactory loggerFactory,
-            IServicesService servicesService,
-            IServiceHealthService serviceHealthService,
             IOptions<ApplicationParameters> applicationParameters)
         {
-            if(env.IsDevelopment())
+            if(hostingEnvironment.IsDevelopment())
             {
-                loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+                loggerFactory.AddConsole(_configuration.GetSection("Logging"));
                 loggerFactory.AddDebug();
             }
             else
@@ -91,9 +108,9 @@ namespace Neutrino.Api
                 loggerFactory.AddAzureWebAppDiagnostics();
             }
 
-            app.UseCustomExceptionHandler();
+            applicationBuilder.UseCustomExceptionHandler();
 
-            app.UseConsensus(options => {
+            applicationBuilder.UseConsensus(options => {
                 options.CurrentNode = applicationParameters.Value.CurrentNode;
                 options.Nodes = applicationParameters.Value.Nodes;
                 options.MinElectionTimeout = applicationParameters.Value.MinElectionTimeout;
@@ -101,10 +118,10 @@ namespace Neutrino.Api
                 options.HeartbeatTimeout = applicationParameters.Value.HeartbeatTimeout;
             });
 
-            app.UseMvc();
+            applicationBuilder.UseMvc();
 
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
+            applicationBuilder.UseSwagger();
+            applicationBuilder.UseSwaggerUI(options =>
             {
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
             });

@@ -9,8 +9,15 @@ using Microsoft.Extensions.Configuration;
 
 namespace Neutrino.Api
 {
+    /// <summary>
+    /// Main program class.
+    /// </summary>
     public class Program
     {
+        /// <summary>
+        /// Program start method.
+        /// </summary>
+        /// <param name="args">Program arguments.</param>
         public static void Main(string[] args)
         {
             var configuration = new ConfigurationBuilder()
