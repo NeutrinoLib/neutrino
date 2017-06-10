@@ -63,11 +63,8 @@ namespace Neutrino.Api
                 });
 
                 var basePath = PlatformServices.Default.Application.ApplicationBasePath;
-                var xmlApiPath = Path.Combine(basePath, "Neutrino.Api.xml"); 
-                options.IncludeXmlComments(xmlApiPath);
-
-                var xmlEntitiesPath = Path.Combine(basePath, "Neutrino.Entities.xml"); 
-                options.IncludeXmlComments(xmlEntitiesPath);
+                var xmlPath = Path.Combine(basePath, "Neutrino.Api.xml"); 
+                options.IncludeXmlComments(xmlPath);
             });
 
             services.AddSingleton<HttpClient, HttpClient>();

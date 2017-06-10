@@ -16,18 +16,22 @@ namespace Neutrino.Api
     public class ServicesController : Controller
     {
         private readonly IServicesService _servicesService;
+        private readonly IServiceHealthService _serviceHealthService;
         private readonly IConsensusContext _consensusContext;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="servicesService">Services service.</param>
-        /// <param name="consensusContext">Context of consensus protocol.</param>
+        /// <param name="serviceHealthService">Searvices health service.</param>
+        /// /// <param name="consensusContext">Context of consensus protocol.</param>
         public ServicesController(
             IServicesService servicesService,
+            IServiceHealthService serviceHealthService,
             IConsensusContext consensusContext)
         {
             _servicesService = servicesService;
+            _serviceHealthService = serviceHealthService;
             _consensusContext = consensusContext;
         }
 
@@ -146,6 +150,32 @@ namespace Neutrino.Api
 
             await _servicesService.Delete(serviceId);
             return Ok();
+        }
+
+        /// <summary>
+        /// Returns service health.
+        /// </summary>
+        /// <param name="serviceId">Service id.</param>
+        /// <returns>Returns service's health information.</returns>
+        [HttpGet("{serviceId}/health")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<ServiceHealth>))]
+        public IEnumerable<ServiceHealth> GetServiceHealth(string serviceId)
+        {
+            var serviceHealth = _serviceHealthService.Get(serviceId);
+            return serviceHealth;
+        }
+
+        /// <summary>
+        /// Returns current service health.
+        /// </summary>
+        /// <param name="serviceId">Service id.</param>
+        /// <returns>Returns current service's health information.</returns>
+        [HttpGet("{serviceId}/health/current")]
+        [ProducesResponseType(200, Type = typeof(ServiceHealth))]
+        public ServiceHealth GetCurrentServiceHealth(string serviceId)
+        {
+            var serviceHealth = _serviceHealthService.GetCurrent(serviceId);
+            return serviceHealth;
         }
     }
 }
