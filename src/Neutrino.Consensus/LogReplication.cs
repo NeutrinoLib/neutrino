@@ -33,33 +33,56 @@ namespace Neutrino.Consensus
                 Method = method
             };
             entries.Add(entry);
-            
-            int successful = 1;
-            foreach(var node in _consensusContext.NodeStates)
-            {
-                try
-                {
-                    var httpResponseMessage = await SendAppendEntries(node.Node, entries);
-                    var result = await httpResponseMessage.Content.ReadAsStringAsync();
 
-                    var appendEntriesResponse = JsonConvert.DeserializeObject<AppendEntriesResponse>(result);
-                    if(appendEntriesResponse.WasSuccessful)
-                    {
-                        successful++;
-                    }         
-                }
-                catch(Exception)
-                {
-                }
-            }
+            var tasks = SendAppendEntries(entries);
+            await Task.WhenAll(tasks.ToArray());
+            int successful = await CollectResponses(tasks);
 
             var allNodes = _consensusContext.NodeStates.Count + 1;
-            if((successful * 2) >= allNodes) 
+            if ((successful * 2) >= allNodes)
             {
                 return ConsensusResult.CreateSuccessful();
             }
-        
+
             return ConsensusResult.CreateError("Log wasn't replicated to majority amount of the nodes.");
+        }
+
+        private static async Task<int> CollectResponses(List<Task<HttpResponseMessage>> tasks)
+        {
+            int successful = 1;
+            foreach (var task in tasks)
+            {
+                if (task.Status == TaskStatus.RanToCompletion && task.Result.IsSuccessStatusCode)
+                {
+                    var result = await task.Result.Content.ReadAsStringAsync();
+
+                    var appendEntriesResponse = JsonConvert.DeserializeObject<AppendEntriesResponse>(result);
+                    if (appendEntriesResponse.WasSuccessful)
+                    {
+                        successful++;
+                    }
+                }
+            }
+
+            return successful;
+        }
+
+        private List<Task<HttpResponseMessage>> SendAppendEntries(List<Entry> entries)
+        {
+            var tasks = new List<Task<HttpResponseMessage>>();
+            try
+            {
+                foreach (var node in _consensusContext.NodeStates)
+                {
+                    var task = SendAppendEntries(node.Node, entries);
+                    tasks.Add(task);
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            return tasks;
         }
 
         private Task<HttpResponseMessage> SendAppendEntries(NodeInfo node, IList<Entry> entries)
