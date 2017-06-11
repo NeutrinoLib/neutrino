@@ -38,6 +38,9 @@ namespace Neutrino.Api
         /// <summary>
         /// Returns all list of services.
         /// </summary>
+        /// <remarks>
+        /// Endpoint returns all registered services.
+        /// </remarks>
         /// <returns>List of services.</returns>
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Service>))]

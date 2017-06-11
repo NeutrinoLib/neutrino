@@ -63,8 +63,11 @@ namespace Neutrino.Api
                 });
 
                 var basePath = PlatformServices.Default.Application.ApplicationBasePath;
-                var xmlPath = Path.Combine(basePath, "Neutrino.Api.xml"); 
-                options.IncludeXmlComments(xmlPath);
+                var xmlPathApi = Path.Combine(basePath, "Neutrino.Api.xml"); 
+                options.IncludeXmlComments(xmlPathApi);
+
+                var xmlPathConsensus = Path.Combine(basePath, "Neutrino.Consensus.xml"); 
+                options.IncludeXmlComments(xmlPathConsensus);
             });
 
             services.AddSingleton<HttpClient, HttpClient>();
@@ -107,6 +110,8 @@ namespace Neutrino.Api
 
             applicationBuilder.UseCustomExceptionHandler();
 
+            applicationBuilder.UseMvc();
+
             applicationBuilder.UseConsensus(options => {
                 options.CurrentNode = applicationParameters.Value.CurrentNode;
                 options.Nodes = applicationParameters.Value.Nodes;
@@ -114,8 +119,6 @@ namespace Neutrino.Api
                 options.MaxElectionTimeout = applicationParameters.Value.MaxElectionTimeout;
                 options.HeartbeatTimeout = applicationParameters.Value.HeartbeatTimeout;
             });
-
-            applicationBuilder.UseMvc();
 
             applicationBuilder.UseSwagger();
             applicationBuilder.UseSwaggerUI(options =>

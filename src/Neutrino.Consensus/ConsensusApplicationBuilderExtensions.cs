@@ -7,12 +7,10 @@ using Neutrino.Consensus.Options;
 
 namespace Neutrino.Consensus
 {
-    public static class ConsensusMiddlewareExtensions
+    public static class ConsensusApplicationBuilderExtensions
     {
         public static IApplicationBuilder UseConsensus(this IApplicationBuilder builder, Action<ConsensusOptions> setupAction)
         {
-            var appBuilder =  builder.UseMiddleware<ConsensusMiddleware>();
-
             var options = new ConsensusOptions();
             setupAction?.Invoke(options);
 
@@ -21,8 +19,7 @@ namespace Neutrino.Consensus
             var logReplicable = builder.ApplicationServices.GetService<ILogReplicable>();
 
             consensusContext.Run(options, stateObservable, logReplicable);
-
-            return appBuilder;
+            return builder;
         }
 
         public static IServiceCollection AddConsensus<TStateObservable, TLogReplicable>(this IServiceCollection services)

@@ -3,6 +3,7 @@
 
 ### Ignore xml documentation
 Neutrino.Api.xml
+Neutrino.Consensus.xml
 
 ### LiteDB ###
 nosqlstore.db

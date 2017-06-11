@@ -1,13 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.4</TargetFramework>
+    <TargetFramework>netstandard1.6</TargetFramework>
     <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;portable-net45+win8</PackageTargetFallback>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentation>true</GenerateDocumentation>
+    <DocumentationFile>Neutrino.Consensus.xml</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Neutrino.Consensus.xml" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>
