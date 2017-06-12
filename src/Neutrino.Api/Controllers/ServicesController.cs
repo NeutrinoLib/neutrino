@@ -36,7 +36,7 @@ namespace Neutrino.Api
         }
 
         /// <summary>
-        /// Returns all list of services.
+        /// Returns all registered services.
         /// </summary>
         /// <remarks>
         /// Endpoint returns all registered services.
@@ -53,6 +53,9 @@ namespace Neutrino.Api
         /// <summary>
         /// Returns service by id.
         /// </summary>
+        /// <remarks>
+        /// Endpoint returns specific service information.
+        /// </remarks>
         /// <param name="serviceId">Service id.</param>
         /// <returns>Specific service information.</returns>
         [HttpGet("{serviceId}")]
@@ -72,6 +75,9 @@ namespace Neutrino.Api
         /// <summary>
         /// Creates new service.
         /// </summary>
+        /// <remarks>
+        /// Endpoint for registering new service information.
+        /// </remarks>
         /// <param name="service">Service information.</param>
         /// <returns>Returns 201 (Created) if service was created.</returns>
         [HttpPost]
@@ -98,6 +104,9 @@ namespace Neutrino.Api
         /// <summary>
         /// Updates service information.
         /// </summary>
+        /// <remarks>
+        /// Endpoint for updating service information.
+        /// </remarks>
         /// <param name="serviceId">Service id to update.</param>
         /// <param name="service">New service information.</param>
         /// <returns>Returns 200 (Ok) if update was finished successfully.</returns>
@@ -133,6 +142,9 @@ namespace Neutrino.Api
         /// <summary>
         /// Deletes service.
         /// </summary>
+        /// <remarks>
+        /// Endpoint for deleting service.
+        /// </remarks>
         /// <param name="serviceId">Service id.</param>
         /// <returns>Returns 200 (Ok) if service was deleted.</returns>
         [HttpDelete("{serviceId}")]
@@ -158,6 +170,9 @@ namespace Neutrino.Api
         /// <summary>
         /// Returns service health.
         /// </summary>
+        /// <remarks>
+        /// Endpoint returns all health information for specific service.
+        /// </remarks>
         /// <param name="serviceId">Service id.</param>
         /// <returns>Returns service's health information.</returns>
         [HttpGet("{serviceId}/health")]
@@ -171,6 +186,9 @@ namespace Neutrino.Api
         /// <summary>
         /// Returns current service health.
         /// </summary>
+        /// <remarks>
+        /// Endpoint returns only current healt status for specific endpoint.
+        /// </remarks>
         /// <param name="serviceId">Service id.</param>
         /// <returns>Returns current service's health information.</returns>
         [HttpGet("{serviceId}/health/current")]
