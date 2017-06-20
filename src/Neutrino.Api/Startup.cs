@@ -48,6 +48,14 @@ namespace Neutrino.Api
         {
             services.Configure<ApplicationParameters>(_configuration);
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins", builder =>
+                {
+                    builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                });
+            });
+
             services.AddMvc();
 
             services.AddMemoryCache();
@@ -109,6 +117,7 @@ namespace Neutrino.Api
             }
 
             applicationBuilder.UseCustomExceptionHandler();
+            applicationBuilder.UseCors("AllowAllOrigins");
 
             applicationBuilder.UseMvc();
 
