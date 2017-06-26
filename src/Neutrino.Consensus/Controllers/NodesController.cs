@@ -32,7 +32,10 @@ namespace Neutrino.Consensus.Controllers
         [HttpGet]
         public IEnumerable<NodeInfo> Get()
         {
-            return _consensusContext.NodeStates.Select(x => x.Node);
+            var nodes = _consensusContext.NodeStates.Select(x => x.Node);
+            nodes = nodes.Append(_consensusContext.CurrentNode);
+
+            return nodes;
         }
 
         /// <summary>
