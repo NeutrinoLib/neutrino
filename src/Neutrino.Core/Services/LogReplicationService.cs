@@ -12,11 +12,16 @@ namespace Neutrino.Core.Services
     {
         private readonly IServiceHealthService _serviceHealthService;
         private readonly IServicesService _servicesService;
+        private readonly IKvPropertyService _kvPropertyService;
 
-        public LogReplicationService(IServiceHealthService serviceHealthService, IServicesService servicesService)
+        public LogReplicationService(
+            IServiceHealthService serviceHealthService, 
+            IServicesService servicesService,
+            IKvPropertyService kvPropertyService)
         {
             _serviceHealthService = serviceHealthService;
             _servicesService = servicesService;
+            _kvPropertyService = kvPropertyService;
         }
 
         public bool OnLogReplication(AppendEntriesEvent appendEntriesEvent)
@@ -45,6 +50,11 @@ namespace Neutrino.Core.Services
                                 _servicesService.Delete(serviceData.Id);
                                 break;
                         }
+                    }
+                    else if(item.ObjectType == typeof(KvProperty).FullName)
+                    {
+                        var kvProperty = JsonConvert.DeserializeObject<KvProperty>(item.Value.ToString());
+                        _kvPropertyService.Create(kvProperty);
                     }
                 }
             }

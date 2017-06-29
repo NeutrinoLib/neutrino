@@ -14,7 +14,7 @@ namespace Neutrino.Core.Services
 
         Task<ActionConfirmation> Update(Service service);
 
-        Task Delete(string id);
+        Task<ActionConfirmation> Delete(string id);
 
         void RunHealthChecker();
 

@@ -84,11 +84,14 @@ namespace Neutrino.Api
 
             services.AddScoped<IRepository<Service>, Repository<Service>>();
             services.AddScoped<IRepository<ServiceHealth>, Repository<ServiceHealth>>();
+            services.AddScoped<IRepository<KvProperty>, Repository<KvProperty>>();
 
             services.AddScoped<IServicesService, ServicesService>();
             services.AddScoped<IServiceHealthService, ServiceHealthService>();
+            services.AddScoped<IKvPropertyService, KvPropertyService>();
 
             services.AddScoped<IServiceValidator, ServiceValidator>();
+            services.AddScoped<IKvPropertyValidator, KvPropertyValidator>();
 
             services.AddConsensus<StateObserverService, LogReplicationService>();
         }

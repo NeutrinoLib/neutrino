@@ -72,6 +72,10 @@ namespace Neutrino.Core.Services
                     _healthService.RunHealthChecker(service);
                 }
             }
+            else
+            {
+                return ActionConfirmation.CreateError("Distribute item to other services fails.");
+            }
 
             return ActionConfirmation.CreateSuccessful();
         }
@@ -95,11 +99,15 @@ namespace Neutrino.Core.Services
                     _healthService.RunHealthChecker(service);
                 }
             }
+            else
+            {
+                return ActionConfirmation.CreateError("Distribute item to other services fails.");
+            }
 
             return ActionConfirmation.CreateSuccessful();
         }
 
-        public async Task Delete(string id)
+        public async Task<ActionConfirmation> Delete(string id)
         {
             var service = _serviceRepository.Get(id);
             var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Delete);
@@ -108,6 +116,12 @@ namespace Neutrino.Core.Services
                 _serviceRepository.Delete(id);
                 _healthService.StopHealthChecker(id);
             }
+            else
+            {
+                return ActionConfirmation.CreateError("Distribute item to other services fails.");
+            }
+
+            return ActionConfirmation.CreateSuccessful();
         }
 
         public void RunHealthChecker()

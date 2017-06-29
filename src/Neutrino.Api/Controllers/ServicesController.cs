@@ -7,7 +7,7 @@ using Neutrino.Consensus.States;
 using Neutrino.Core.Services;
 using Neutrino.Entities;
 
-namespace Neutrino.Api
+namespace Neutrino.Api.Controllers
 {
     /// <summary>
     /// Services controller.
@@ -163,8 +163,15 @@ namespace Neutrino.Api
                 return NotFound();
             }
 
-            await _servicesService.Delete(serviceId);
-            return Ok();
+            var actionConfirmation = await _servicesService.Delete(serviceId);
+            if(actionConfirmation.WasSuccessful)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest(actionConfirmation);
+            }
         }
 
         /// <summary>
