@@ -74,7 +74,7 @@ namespace Neutrino.Core.Services
             }
             else
             {
-                return ActionConfirmation.CreateError("Distribute item to other services fails.");
+                return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
             }
 
             return ActionConfirmation.CreateSuccessful();
@@ -101,7 +101,7 @@ namespace Neutrino.Core.Services
             }
             else
             {
-                return ActionConfirmation.CreateError("Distribute item to other services fails.");
+                return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
             }
 
             return ActionConfirmation.CreateSuccessful();
@@ -118,7 +118,7 @@ namespace Neutrino.Core.Services
             }
             else
             {
-                return ActionConfirmation.CreateError("Distribute item to other services fails.");
+                return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
             }
 
             return ActionConfirmation.CreateSuccessful();

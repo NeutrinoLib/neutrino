@@ -35,7 +35,12 @@ namespace Neutrino.Consensus
             entries.Add(entry);
 
             var tasks = SendAppendEntries(entries);
-            await Task.WhenAll(tasks.ToArray());
+            try
+            {
+                await Task.WhenAll(tasks.ToArray());
+            }
+            catch(Exception) { }
+            
             int successful = await CollectResponses(tasks);
 
             var allNodes = _consensusContext.NodeStates.Count + 1;
