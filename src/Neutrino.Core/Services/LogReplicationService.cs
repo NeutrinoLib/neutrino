@@ -54,7 +54,18 @@ namespace Neutrino.Core.Services
                     else if(item.ObjectType == typeof(KvProperty).FullName)
                     {
                         var kvProperty = JsonConvert.DeserializeObject<KvProperty>(item.Value.ToString());
-                        _kvPropertyService.Create(kvProperty);
+                        switch(item.Method)
+                        {
+                            case MethodType.Create:
+                                _kvPropertyService.Create(kvProperty);
+                                break;
+                            case MethodType.Update:
+                                _kvPropertyService.Update(kvProperty);
+                                break;
+                            case MethodType.Delete:
+                                _kvPropertyService.Delete(kvProperty.Key);
+                                break;
+                        }
                     }
                 }
             }

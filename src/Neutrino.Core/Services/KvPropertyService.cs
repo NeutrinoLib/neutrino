@@ -14,15 +14,18 @@ namespace Neutrino.Core.Services
         private readonly IRepository<KvProperty> _kvPropertyRepository;
         private readonly IKvPropertyValidator _kvPropertyValidator;
         private readonly ILogReplication _logReplication;
+        private readonly IConsensusContext _consensusContext;
 
         public KvPropertyService(
             IRepository<KvProperty> kvPropertyRepository,
             IKvPropertyValidator kvPropertyValidator,
-            ILogReplication logReplication)
+            ILogReplication logReplication,
+            IConsensusContext consensusContext)
         {
             _kvPropertyRepository = kvPropertyRepository;
             _kvPropertyValidator = kvPropertyValidator;
             _logReplication = logReplication;
+            _consensusContext = consensusContext;
         }
 
         public IEnumerable<KvProperty> Get()
@@ -45,14 +48,21 @@ namespace Neutrino.Core.Services
                 return validatorConfirmation;
             }
 
-            var consensusResult = await _logReplication.DistributeEntry(kvProperty, MethodType.Create);
-            if(consensusResult.WasSuccessful)
+            if(_consensusContext.IsLeader())
             {
-                _kvPropertyRepository.Create(kvProperty);
+                var consensusResult = await _logReplication.DistributeEntry(kvProperty, MethodType.Create);
+                if(consensusResult.WasSuccessful)
+                {
+                    _kvPropertyRepository.Create(kvProperty);
+                }
+                else
+                {
+                    return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
+                }
             }
             else
             {
-                return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
+                _kvPropertyRepository.Create(kvProperty);
             }
 
             return ActionConfirmation.CreateSuccessful();
@@ -66,14 +76,21 @@ namespace Neutrino.Core.Services
                 return validatorConfirmation;
             }
 
-            var consensusResult = await _logReplication.DistributeEntry(kvProperty, MethodType.Update);
-            if(consensusResult.WasSuccessful)
+            if(_consensusContext.IsLeader())
             {
-                _kvPropertyRepository.Update(kvProperty);
+                var consensusResult = await _logReplication.DistributeEntry(kvProperty, MethodType.Update);
+                if(consensusResult.WasSuccessful)
+                {
+                    _kvPropertyRepository.Update(kvProperty);
+                }
+                else
+                {
+                    return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
+                }
             }
             else
             {
-                return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
+                _kvPropertyRepository.Update(kvProperty);   
             }
 
             return ActionConfirmation.CreateSuccessful();
@@ -82,14 +99,22 @@ namespace Neutrino.Core.Services
         public async Task<ActionConfirmation> Delete(string id)
         {
             var kvProperty = _kvPropertyRepository.Get(id);
-            var consensusResult = await _logReplication.DistributeEntry(kvProperty, MethodType.Delete);
-            if(consensusResult.WasSuccessful)
+
+            if(_consensusContext.IsLeader())
             {
-                _kvPropertyRepository.Delete(id);
+                var consensusResult = await _logReplication.DistributeEntry(kvProperty, MethodType.Delete);
+                if(consensusResult.WasSuccessful)
+                {
+                    _kvPropertyRepository.Delete(id);
+                }
+                else
+                {
+                    return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
+                }
             }
             else
             {
-                return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
+                _kvPropertyRepository.Delete(id);
             }
 
             return ActionConfirmation.CreateSuccessful();

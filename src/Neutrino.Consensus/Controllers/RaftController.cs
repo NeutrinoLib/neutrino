@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Neutrino.Consensus.Events;
@@ -34,9 +35,14 @@ namespace Neutrino.Consensus.Controllers
         [HttpPost("append-entries")]
         public ActionResult AppendEntries([FromBody] AppendEntriesEvent appendEntriesEvent)
         {
-            _consensusContext.State.TriggerEvent(appendEntriesEvent);
-
             IResponse response = null;
+            if(_consensusContext.State == null)
+            {
+                response = new AppendEntriesResponse(_consensusContext.CurrentTerm, true);
+                return new ObjectResult(response);
+            }
+
+            _consensusContext.State.TriggerEvent(appendEntriesEvent);
             if (appendEntriesEvent.Entries != null && appendEntriesEvent.Entries.Count > 0)
             {
                 var isSuccessfull = _consensusContext.LogReplicable.OnLogReplication(appendEntriesEvent);

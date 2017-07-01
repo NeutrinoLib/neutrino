@@ -63,18 +63,25 @@ namespace Neutrino.Core.Services
                 return validatorConfirmation;
             }
 
-            var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Create);
-            if(consensusResult.WasSuccessful)
+            if(_consensusContext.IsLeader())
             {
-                _serviceRepository.Create(service);
-                if (ShouldExecuteHealthChecking(service))
+                var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Create);
+                if(consensusResult.WasSuccessful)
                 {
-                    _healthService.RunHealthChecker(service);
+                    _serviceRepository.Create(service);
+                    if (ShouldExecuteHealthChecking(service))
+                    {
+                        _healthService.RunHealthChecker(service);
+                    }
+                }
+                else
+                {
+                    return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
                 }
             }
-            else
+            else 
             {
-                return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
+                _serviceRepository.Create(service);
             }
 
             return ActionConfirmation.CreateSuccessful();
@@ -88,20 +95,27 @@ namespace Neutrino.Core.Services
                 return validatorConfirmation;
             }
 
-            var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Update);
-            if(consensusResult.WasSuccessful)
+            if(_consensusContext.IsLeader())
             {
-                _serviceRepository.Update(service);
-                _healthService.StopHealthChecker(service.Id);
-
-                if(ShouldExecuteHealthChecking(service))
+                var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Update);
+                if(consensusResult.WasSuccessful)
                 {
-                    _healthService.RunHealthChecker(service);
+                    _serviceRepository.Update(service);
+                    _healthService.StopHealthChecker(service.Id);
+
+                    if(ShouldExecuteHealthChecking(service))
+                    {
+                        _healthService.RunHealthChecker(service);
+                    }
+                }
+                else
+                {
+                    return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
                 }
             }
             else
             {
-                return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
+                _serviceRepository.Update(service);
             }
 
             return ActionConfirmation.CreateSuccessful();
@@ -110,15 +124,23 @@ namespace Neutrino.Core.Services
         public async Task<ActionConfirmation> Delete(string id)
         {
             var service = _serviceRepository.Get(id);
-            var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Delete);
-            if(consensusResult.WasSuccessful)
+
+            if(_consensusContext.IsLeader())
             {
-                _serviceRepository.Delete(id);
-                _healthService.StopHealthChecker(id);
+                var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Delete);
+                if(consensusResult.WasSuccessful)
+                {
+                    _serviceRepository.Delete(id);
+                    _healthService.StopHealthChecker(id);
+                }
+                else
+                {
+                    return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
+                }
             }
             else
             {
-                return ActionConfirmation.CreateError($"Distribute item to other services fails: '{consensusResult.Message}'.");
+                _serviceRepository.Delete(id);
             }
 
             return ActionConfirmation.CreateSuccessful();
