@@ -11,12 +11,12 @@ using Neutrino.Consensus.Options;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.IO;
+using System.Net.Http.Headers;
 
 namespace Neutrino.Consensus
 {
-    public class ConsensusContext : IConsensusContext, IDisposable
+    public class ConsensusContext : IConsensusContext
     {
-        private bool disposedValue = false;
         private int _electionTimeout;
         private int _currentTerm = 1;
         private State _state;
@@ -28,10 +28,10 @@ namespace Neutrino.Consensus
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly NodeVote _nodeVote;
 
-        public ConsensusContext(IApplicationLifetime applicationLifetime)
+        public ConsensusContext(IApplicationLifetime applicationLifetime, HttpClient httpClient)
         {
             _applicationLifetime = applicationLifetime;
-            _httpClient = new HttpClient();
+            _httpClient = httpClient;
 
             _applicationLifetime.ApplicationStopping.Register(DisposeResources);
             _nodeVote = new NodeVote();
@@ -66,8 +66,11 @@ namespace Neutrino.Consensus
             _logReplicable.ClearLog();
 
             var url = Path.Combine(_nodeVote.LeaderNode.Address, "api/raft/full-log");
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
-            var httpResponseMessage = _httpClient.SendAsync(httpRequestMessage).GetAwaiter().GetResult();
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Authorization = new AuthenticationHeaderValue(
+                ConsensusOptions.AuthenticationScheme, ConsensusOptions.AuthenticationParameter);
+
+            var httpResponseMessage = _httpClient.SendAsync(request).GetAwaiter().GetResult();
 
             if(httpResponseMessage.IsSuccessStatusCode)
             {
@@ -168,6 +171,11 @@ namespace Neutrino.Consensus
             get { return _httpClient; }
         }
 
+        public ConsensusOptions ConsensusOptions
+        {
+            get { return _consensusOptions; }
+        } 
+
         public bool IsLeader()
         {
             return State is Leader;
@@ -181,24 +189,6 @@ namespace Neutrino.Consensus
                 _state.Dispose();
                 _state = null;
             }
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    _httpClient.Dispose();
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neutrino.Consensus.Events;
 using Neutrino.Consensus.Responses;
@@ -10,6 +11,7 @@ namespace Neutrino.Consensus.Controllers
     /// <summary>
     /// Controller for Raft signals.
     /// </summary>
+    [Authorize]
     [Route("api/raft")]
     public class RaftController : Controller
     {

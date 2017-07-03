@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neutrino.Consensus;
 using Neutrino.Core.Services;
@@ -10,6 +11,7 @@ namespace Neutrino.Api.Controllers
     /// <summary>
     /// Key-value properties controller.
     /// </summary>
+    [Authorize]
     [Route("api/key-values")]
     public class KvPropertiesController : Controller
     {

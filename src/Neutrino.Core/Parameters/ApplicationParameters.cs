@@ -5,6 +5,7 @@ namespace Neutrino.Core.Services.Parameters
 {
     public class ApplicationParameters
     {
+        public string SecureToken { get; set; }
         public int MinElectionTimeout { get; set; }
         
         public int MaxElectionTimeout { get; set; }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neutrino.Consensus.Entities;
 
@@ -8,6 +9,7 @@ namespace Neutrino.Consensus.Controllers
     /// <summary>
     /// Controller for managing nodes information.
     /// </summary>
+    [Authorize]
     [Route("api/nodes")]
     public class NodesController : Controller
     {

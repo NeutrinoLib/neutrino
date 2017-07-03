@@ -17,5 +17,9 @@ namespace Neutrino.Consensus.Options
         public int MaxElectionTimeout { get; set; }
 
         public int HeartbeatTimeout { get; set; }
+
+        public string AuthenticationParameter { get; set; }
+
+        public string AuthenticationScheme { get; set; }
     }
 }

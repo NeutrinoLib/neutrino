@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neutrino.Consensus;
 using Neutrino.Consensus.States;
@@ -12,6 +13,7 @@ namespace Neutrino.Api.Controllers
     /// <summary>
     /// Services controller.
     /// </summary>
+    [Authorize]
     [Route("api/services")]
     public class ServicesController : Controller
     {

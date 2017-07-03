@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Neutrino.Consensus.Entities;
@@ -94,6 +95,8 @@ namespace Neutrino.Consensus
         {
             var url = Path.Combine(node.Address, "api/raft/append-entries");
             var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Authorization = new AuthenticationHeaderValue(
+                _consensusContext.ConsensusOptions.AuthenticationScheme, _consensusContext.ConsensusOptions.AuthenticationParameter);
 
             var appendEntriesEvent = new AppendEntriesEvent(_consensusContext.CurrentTerm, _consensusContext.CurrentNode, entries);
             var jsonContent = JsonConvert.SerializeObject(appendEntriesEvent);

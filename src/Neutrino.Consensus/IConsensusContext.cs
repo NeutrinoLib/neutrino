@@ -30,6 +30,8 @@ namespace Neutrino.Consensus
 
         HttpClient HttpClient { get; }
 
+        ConsensusOptions ConsensusOptions { get; }
+
         void Run(ConsensusOptions consensusOptions, IStateObservable stateObservable, ILogReplicable logReplicable);
 
         void EnsureLogConsistency();
