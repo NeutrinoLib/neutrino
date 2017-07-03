@@ -1,22 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard1.6</TargetFramework>
     <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;portable-net45+win8</PackageTargetFallback>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="../Neutrino.Entities/Neutrino.Entities.csproj" />
     <ProjectReference Include="../Neutrino.Consensus/Neutrino.Consensus.csproj" />
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="LiteDB" Version="3.1.0" />
+    <PackageReference Include="LiteDB" Version="3.1.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="1.1.2" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="1.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="1.1.2" />
   </ItemGroup>
-
+  <ItemGroup>
+    <DotNetCliToolReference Include="libyear" Version="*" />
+  </ItemGroup>
 </Project>

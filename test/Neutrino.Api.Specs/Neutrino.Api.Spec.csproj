@@ -26,6 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <DotNetCliToolReference Include="libyear" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="appsettings.json" CopyToOutputDirectory="Always" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="Always" />
   </ItemGroup>
