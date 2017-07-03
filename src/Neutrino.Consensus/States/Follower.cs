@@ -11,6 +11,7 @@ namespace Neutrino.Consensus.States
         private int _lastRertievedHeartbeat = 0;
         private CancellationTokenSource _checkHeartbeatTokenSource;
         private readonly IConsensusContext _consensusContext;
+        private readonly object _ensureLogLock = new object();
 
         public Follower(IConsensusContext consensusContext)
         {
@@ -27,10 +28,28 @@ namespace Neutrino.Consensus.States
             var appendEntriesEvent = triggeredEvent as AppendEntriesEvent;
             if(appendEntriesEvent != null)
             {
+                bool leaderNodeWasChanged = false;
+
+                lock(_ensureLogLock)
+                {
+                    if(_consensusContext.NodeVote.LeaderNode == null || 
+                        _consensusContext.NodeVote.LeaderNode.Id != appendEntriesEvent.LeaderNode.Id)
+                    {
+                        leaderNodeWasChanged = true;
+                    }
+
+                    _consensusContext.NodeVote.LeaderNode = appendEntriesEvent.LeaderNode;
+                }
+
                 _consensusContext.CurrentTerm = appendEntriesEvent.Term;
-                _consensusContext.NodeVote.LeaderNode = appendEntriesEvent.LeaderNode;
                 _consensusContext.NodeVote.VoteTerm = 0;
                 _lastRertievedHeartbeat = 0;
+
+                if(leaderNodeWasChanged)
+                {
+                    _consensusContext.EnsureLogConsistency();
+                }
+
                 return new AppendEntriesResponse(_consensusContext.CurrentTerm, true);
             }
 

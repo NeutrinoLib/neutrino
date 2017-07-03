@@ -119,5 +119,10 @@ namespace Neutrino.Core.Services
 
             return ActionConfirmation.CreateSuccessful();
         }
+
+        public void Clear()
+        {
+            _kvPropertyRepository.Clear();
+        }
     }
 }

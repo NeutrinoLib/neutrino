@@ -20,6 +20,12 @@ namespace Neutrino.Core.Services
             _healthService = healthService;
         }
 
+        public IEnumerable<ServiceHealth> Get()
+        {
+            var serviceHealth = _serviceHealthRepository.Get();
+            return serviceHealth;
+        }
+
         public IEnumerable<ServiceHealth> Get(string serviceId)
         {
             var serviceHealth = _serviceHealthRepository.Get(x => x.ServiceId == serviceId);
@@ -42,6 +48,11 @@ namespace Neutrino.Core.Services
         {
             serviceHealth.ServiceId = serviceId;
             _serviceHealthRepository.Create(serviceHealth);
+        }
+
+        public void Clear()
+        {
+            _serviceHealthRepository.Clear();
         }
     }
 }

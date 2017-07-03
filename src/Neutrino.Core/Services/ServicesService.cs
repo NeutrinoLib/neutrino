@@ -164,6 +164,11 @@ namespace Neutrino.Core.Services
             }
         }
 
+        public void Clear()
+        {
+            _serviceRepository.Clear();
+        }
+
         private bool ShouldExecuteHealthChecking(Service service)
         {
             return _consensusContext.IsLeader() &&

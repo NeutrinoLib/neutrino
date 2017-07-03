@@ -53,5 +53,15 @@ namespace Neutrino.Core.Repositories
         {
             _storeContext.Repository.Delete<T>(id);
         }
+
+        public void Clear()
+        {
+            var collectionName = typeof(T).Name;
+
+            if(_storeContext.Repository.Database.CollectionExists(collectionName))
+            {
+                _storeContext.Repository.Database.DropCollection(collectionName);
+            }
+        }
     }
 }

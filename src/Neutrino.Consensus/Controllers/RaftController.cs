@@ -70,5 +70,19 @@ namespace Neutrino.Consensus.Controllers
             var response = _consensusContext.State.TriggerEvent(requestVoteEvent);
             return new ObjectResult(response);
         }
+
+        /// <summary>
+        /// Returns full log.
+        /// </summary>
+        /// <remarks>
+        /// Endpoint is used for retrieve full log from node.
+        /// </remarks>
+        /// <returns>Full log.</returns>
+        [HttpGet("full-log")]
+        public ActionResult FullLog()
+        {
+            var appendEntriesEvent = _consensusContext.LogReplicable.GetFullLog();
+            return new ObjectResult(appendEntriesEvent);
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Neutrino.Consensus;
 using Neutrino.Consensus.Entities;
@@ -71,6 +72,46 @@ namespace Neutrino.Core.Services
             }
 
             return true;
+        }
+
+        public bool ClearLog()
+        {
+            _kvPropertyService.Clear();
+            _serviceHealthService.Clear();
+            _servicesService.Clear();
+
+            return true;
+        }
+
+        public AppendEntriesEvent GetFullLog()
+        {
+            var appendEntriesEvent = new AppendEntriesEvent();
+            appendEntriesEvent.Entries = new List<Entry>();
+
+            var services = _servicesService.Get();
+            var kvProperties = _kvPropertyService.Get();
+            var serviceHealth = _serviceHealthService.Get();
+
+            AppendItems(appendEntriesEvent, services);
+            AppendItems(appendEntriesEvent, kvProperties);
+            AppendItems(appendEntriesEvent, serviceHealth);
+
+            return appendEntriesEvent;
+        }
+
+        private static void AppendItems(AppendEntriesEvent appendEntriesEvent, IEnumerable<dynamic> services)
+        {
+            foreach (var service in services)
+            {
+                var entry = new Entry
+                {
+                    Method = MethodType.Create,
+                    Value = service,
+                    ObjectType = service.GetType().FullName
+                };
+
+                appendEntriesEvent.Entries.Add(entry);
+            }
         }
     }
 }

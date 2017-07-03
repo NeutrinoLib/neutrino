@@ -9,11 +9,14 @@ using Neutrino.Consensus.Responses;
 using Neutrino.Consensus.States;
 using Neutrino.Consensus.Options;
 using Newtonsoft.Json;
+using System.Net.Http;
+using System.IO;
 
 namespace Neutrino.Consensus
 {
-    public class ConsensusContext : IConsensusContext
+    public class ConsensusContext : IConsensusContext, IDisposable
     {
+        private bool disposedValue = false;
         private int _electionTimeout;
         private int _currentTerm = 1;
         private State _state;
@@ -21,18 +24,23 @@ namespace Neutrino.Consensus
         private IList<NodeState> _nodeStates;
         private IStateObservable _stateObservable;
         private ILogReplicable _logReplicable;
+        private HttpClient _httpClient;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly NodeVote _nodeVote;
 
         public ConsensusContext(IApplicationLifetime applicationLifetime)
         {
             _applicationLifetime = applicationLifetime;
+            _httpClient = new HttpClient();
 
             _applicationLifetime.ApplicationStopping.Register(DisposeResources);
             _nodeVote = new NodeVote();
         }
 
-        public void Run(ConsensusOptions consensusOptions, IStateObservable stateObservable, ILogReplicable logReplicable)
+        public void Run(
+            ConsensusOptions consensusOptions, 
+            IStateObservable stateObservable, 
+            ILogReplicable logReplicable)
         {
             _consensusOptions = consensusOptions;
             _stateObservable = stateObservable;
@@ -49,6 +57,26 @@ namespace Neutrino.Consensus
 
             RandomElectionTimeout();
             State = new Follower(this);
+        }
+
+        public void EnsureLogConsistency()
+        {
+            Console.WriteLine("Ensure log is consistency process started...");
+
+            _logReplicable.ClearLog();
+
+            var url = Path.Combine(_nodeVote.LeaderNode.Address, "api/raft/full-log");
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            var httpResponseMessage = _httpClient.SendAsync(httpRequestMessage).GetAwaiter().GetResult();
+
+            if(httpResponseMessage.IsSuccessStatusCode)
+            {
+                var content = httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                var appendEntriesEvent = JsonConvert.DeserializeObject<AppendEntriesEvent>(content);
+                _logReplicable.OnLogReplication(appendEntriesEvent);
+            }
+
+            Console.WriteLine("Process of log consistency finished");
         }
 
         private void RandomElectionTimeout()
@@ -135,6 +163,11 @@ namespace Neutrino.Consensus
             get { return _stateObservable; }
         }
 
+        public HttpClient HttpClient
+        {
+            get { return _httpClient; }
+        }
+
         public bool IsLeader()
         {
             return State is Leader;
@@ -148,6 +181,24 @@ namespace Neutrino.Consensus
                 _state.Dispose();
                 _state = null;
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    _httpClient.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
         }
     }
 }

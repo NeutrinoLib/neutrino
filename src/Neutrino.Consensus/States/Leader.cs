@@ -15,14 +15,12 @@ namespace Neutrino.Consensus.States
     public class Leader : State
     {
         private int _lastSentHeartbeat = int.MaxValue;
-        private readonly HttpClient _httpClient;
         private readonly IConsensusContext _consensusContext;
         private CancellationTokenSource _sendHeartbeatTokenSource;
 
         public Leader(IConsensusContext consensusContext)
         {
             _consensusContext = consensusContext;
-            _httpClient = new HttpClient();
 
             _consensusContext.NodeVote.LeaderNode = _consensusContext.CurrentNode;
             _consensusContext.NodeVote.VoteTerm = 0;
@@ -47,7 +45,6 @@ namespace Neutrino.Consensus.States
         public override void DisposeCore()
         {
             _sendHeartbeatTokenSource.Cancel();
-            _httpClient.Dispose();
         }
 
         private void StartSendingHeartbeats()
@@ -96,7 +93,7 @@ namespace Neutrino.Consensus.States
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             request.Content = content;
 
-            var task = _httpClient.SendAsync(request);
+            var task = _consensusContext.HttpClient.SendAsync(request);
             return task;
         }
     }

@@ -15,5 +15,7 @@ namespace Neutrino.Core.Services
         Task<ActionConfirmation> Update(KvProperty kvProperty);
 
         Task<ActionConfirmation> Delete(string id);
+
+        void Clear();
     }
 }

@@ -16,14 +16,12 @@ namespace Neutrino.Consensus.States
     public class Candidate : State
     {
         private int _lastVoting = int.MaxValue;
-        private readonly HttpClient _httpClient;
         private readonly IConsensusContext _consensusContext;
         private CancellationTokenSource _votingTokenSource;
 
         public Candidate(IConsensusContext consensusContext)
         {
             _consensusContext = consensusContext;
-            _httpClient = new HttpClient();
 
             ClearVoteGranted();
         }
@@ -65,7 +63,6 @@ namespace Neutrino.Consensus.States
 
         public override void DisposeCore()
         {
-            _httpClient.Dispose();
         }
 
         private void OpenVoting()
@@ -183,7 +180,7 @@ namespace Neutrino.Consensus.States
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             request.Content = content;
 
-            var task = _httpClient.SendAsync(request);
+            var task = _consensusContext.HttpClient.SendAsync(request);
             return task;
         }
 

@@ -4,6 +4,7 @@ using Neutrino.Consensus.Events;
 using Neutrino.Consensus.Responses;
 using Neutrino.Consensus.States;
 using Neutrino.Consensus.Options;
+using System.Net.Http;
 
 namespace Neutrino.Consensus
 {
@@ -27,7 +28,11 @@ namespace Neutrino.Consensus
 
         IStateObservable StateObservable { get; }
 
+        HttpClient HttpClient { get; }
+
         void Run(ConsensusOptions consensusOptions, IStateObservable stateObservable, ILogReplicable logReplicable);
+
+        void EnsureLogConsistency();
 
         bool IsLeader();
     }

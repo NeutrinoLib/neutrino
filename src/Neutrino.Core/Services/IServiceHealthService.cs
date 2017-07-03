@@ -6,6 +6,8 @@ namespace Neutrino.Core.Services
 {
     public interface IServiceHealthService
     {
+        IEnumerable<ServiceHealth> Get();
+
         IEnumerable<ServiceHealth> Get(string serviceId);
 
         ServiceHealth GetCurrent(string serviceId);
@@ -13,5 +15,7 @@ namespace Neutrino.Core.Services
         ServiceHealth Get(string serviceId, string id);
 
         void Create(string serviceId, ServiceHealth serviceHealth);
+
+        void Clear();
     }
 }

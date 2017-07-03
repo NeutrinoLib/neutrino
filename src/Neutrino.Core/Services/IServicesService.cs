@@ -19,5 +19,7 @@ namespace Neutrino.Core.Services
         void RunHealthChecker();
 
         void StopHealthChecker();
+
+        void Clear();
     }
 }
