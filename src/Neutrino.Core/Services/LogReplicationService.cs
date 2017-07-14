@@ -74,7 +74,7 @@ namespace Neutrino.Core.Services
             return true;
         }
 
-        public bool ClearLog()
+        public bool OnClearLog()
         {
             _kvPropertyService.Clear();
             _serviceHealthService.Clear();
@@ -83,7 +83,7 @@ namespace Neutrino.Core.Services
             return true;
         }
 
-        public AppendEntriesEvent GetFullLog()
+        public AppendEntriesEvent OnGetFullLog()
         {
             var appendEntriesEvent = new AppendEntriesEvent();
             appendEntriesEvent.Entries = new List<Entry>();

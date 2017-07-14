@@ -83,7 +83,7 @@ namespace Neutrino.Consensus.Controllers
         [HttpGet("full-log")]
         public ActionResult FullLog()
         {
-            var appendEntriesEvent = _consensusContext.LogReplicable.GetFullLog();
+            var appendEntriesEvent = _consensusContext.LogReplicable.OnGetFullLog();
             return new ObjectResult(appendEntriesEvent);
         }
     }

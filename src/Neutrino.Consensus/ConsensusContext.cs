@@ -63,7 +63,7 @@ namespace Neutrino.Consensus
         {
             Console.WriteLine("Ensure log is consistency process started...");
 
-            _logReplicable.ClearLog();
+            _logReplicable.OnClearLog();
 
             var url = Path.Combine(_nodeVote.LeaderNode.Address, "api/raft/full-log");
             var request = new HttpRequestMessage(HttpMethod.Get, url);
