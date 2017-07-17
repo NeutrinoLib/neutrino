@@ -129,6 +129,8 @@ namespace Neutrino.Core.Services
                     break;
                 }
             }
+
+            await DeregisterService(service);
         }
 
         private async Task DeregisterService(Service service)
