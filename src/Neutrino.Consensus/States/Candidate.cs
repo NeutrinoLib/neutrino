@@ -167,8 +167,9 @@ namespace Neutrino.Consensus.States
 
                 Task.WhenAll(tasks.ToArray()).GetAwaiter().GetResult();
             }
-            catch (Exception)
+            catch (Exception exception)
             {
+                _logger.LogWarning($"Cannot connect to node. Exception type: '{exception.GetType()}'. Exception message: {exception.Message}.");
             }
 
             return tasks;
