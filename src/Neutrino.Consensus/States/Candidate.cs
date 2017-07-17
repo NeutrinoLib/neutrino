@@ -178,6 +178,8 @@ namespace Neutrino.Consensus.States
         private Task<HttpResponseMessage> SendLeaderRequestVote(NodeInfo node)
         {
             var url = Path.Combine(node.Address, "api/raft/request-vote");
+            _logger.LogInformation($"Sending leader request to node: '{node.Id}'. Endpoint address: '{url}'.");
+
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Headers.Authorization = new AuthenticationHeaderValue(
                 _consensusContext.ConsensusOptions.AuthenticationScheme, _consensusContext.ConsensusOptions.AuthenticationParameter);
