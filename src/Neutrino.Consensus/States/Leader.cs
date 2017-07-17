@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Flurl;
 using Microsoft.Extensions.Logging;
 using Neutrino.Consensus.Entities;
 using Neutrino.Consensus.Events;
@@ -89,7 +90,7 @@ namespace Neutrino.Consensus.States
 
         private Task<HttpResponseMessage> SendHeartbeat(NodeInfo node)
         {
-            var url = Path.Combine(node.Address, "api/raft/append-entries");
+            var url = node.Address.AppendPathSegment("api/raft/append-entries");
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Headers.Authorization = new AuthenticationHeaderValue(
                 _consensusContext.ConsensusOptions.AuthenticationScheme, _consensusContext.ConsensusOptions.AuthenticationParameter);

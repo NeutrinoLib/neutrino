@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Flurl;
 using Neutrino.Consensus.Entities;
 using Neutrino.Consensus.Events;
 using Neutrino.Consensus.Responses;
@@ -93,7 +94,7 @@ namespace Neutrino.Consensus
 
         private Task<HttpResponseMessage> SendAppendEntries(NodeInfo node, IList<Entry> entries)
         {
-            var url = Path.Combine(node.Address, "api/raft/append-entries");
+            var url = node.Address.AppendPathSegment("api/raft/append-entries");
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Headers.Authorization = new AuthenticationHeaderValue(
                 _consensusContext.ConsensusOptions.AuthenticationScheme, _consensusContext.ConsensusOptions.AuthenticationParameter);

@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Flurl;
 using Microsoft.Extensions.Logging;
 using Neutrino.Consensus.Entities;
 using Neutrino.Consensus.Events;
@@ -177,7 +178,7 @@ namespace Neutrino.Consensus.States
 
         private Task<HttpResponseMessage> SendLeaderRequestVote(NodeInfo node)
         {
-            var url = Path.Combine(node.Address, "api/raft/request-vote");
+            var url = node.Address.AppendPathSegment("api/raft/request-vote");
             _logger.LogInformation($"Sending leader request to node: '{node.Id}'. Endpoint address: '{url}'.");
 
             var request = new HttpRequestMessage(HttpMethod.Post, url);

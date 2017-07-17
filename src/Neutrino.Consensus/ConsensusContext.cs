@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using System.IO;
 using System.Net.Http.Headers;
+using Flurl;
 
 namespace Neutrino.Consensus
 {
@@ -70,7 +71,7 @@ namespace Neutrino.Consensus
 
             _logReplicable.OnClearLog();
 
-            var url = Path.Combine(_nodeVote.LeaderNode.Address, "api/raft/full-log");
+            var url = _nodeVote.LeaderNode.Address.AppendPathSegment("api/raft/full-log");
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue(
                 ConsensusOptions.AuthenticationScheme, ConsensusOptions.AuthenticationParameter);
