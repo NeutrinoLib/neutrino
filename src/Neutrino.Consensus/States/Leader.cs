@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Neutrino.Consensus.Entities;
 using Neutrino.Consensus.Events;
 using Neutrino.Consensus.Responses;
@@ -17,11 +18,13 @@ namespace Neutrino.Consensus.States
     {
         private int _lastSentHeartbeat = int.MaxValue;
         private readonly IConsensusContext _consensusContext;
+        private readonly ILogger<IConsensusContext> _logger;
         private CancellationTokenSource _sendHeartbeatTokenSource;
 
-        public Leader(IConsensusContext consensusContext)
+        public Leader(IConsensusContext consensusContext, ILogger<IConsensusContext> logger)
         {
             _consensusContext = consensusContext;
+            _logger = logger;
 
             _consensusContext.NodeVote.LeaderNode = _consensusContext.CurrentNode;
             _consensusContext.NodeVote.VoteTerm = 0;

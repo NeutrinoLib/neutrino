@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Neutrino.Consensus.Entities;
 using Neutrino.Consensus.Events;
 using Neutrino.Consensus.Responses;
@@ -18,11 +19,13 @@ namespace Neutrino.Consensus.States
     {
         private int _lastVoting = int.MaxValue;
         private readonly IConsensusContext _consensusContext;
+        private readonly ILogger<IConsensusContext> _logger;
         private CancellationTokenSource _votingTokenSource;
 
-        public Candidate(IConsensusContext consensusContext)
+        public Candidate(IConsensusContext consensusContext, ILogger<IConsensusContext> logger)
         {
             _consensusContext = consensusContext;
+            _logger = logger;
 
             ClearVoteGranted();
         }
@@ -37,7 +40,7 @@ namespace Neutrino.Consensus.States
             var requestVoteEvent = triggeredEvent as RequestVoteEvent;
             if(requestVoteEvent != null)
             {
-                Console.WriteLine($"Retreived 'LeaderRequestEvent' event (currentTerm: {requestVoteEvent.Term}, node: {requestVoteEvent.Node.Id}).");
+                _logger.LogInformation($"Retreived 'LeaderRequestEvent' event (currentTerm: {requestVoteEvent.Term}, node: {requestVoteEvent.Node.Id}).");
 
                 bool voteGranted = OtherNodeCanBeLeader(requestVoteEvent);
                 if(voteGranted)
@@ -46,14 +49,14 @@ namespace Neutrino.Consensus.States
                     _consensusContext.NodeVote.LeaderNode = requestVoteEvent.Node;
                     _consensusContext.NodeVote.VoteTerm = requestVoteEvent.Term;
 
-                    Console.WriteLine($"Voting for node ({requestVoteEvent.Node.Id}): GRANTED.");
+                    _logger.LogInformation($"Voting for node ({requestVoteEvent.Node.Id}): GRANTED.");
 
                     StopVoting();
-                    _consensusContext.State = new Follower(_consensusContext);
+                    _consensusContext.State = new Follower(_consensusContext, _logger);
                 }
                 else
                 {
-                    Console.WriteLine($"Voting for node ({requestVoteEvent.Node.Id}): NOT GRANTED.");
+                    _logger.LogInformation($"Voting for node ({requestVoteEvent.Node.Id}): NOT GRANTED.");
                 }
                 
                 return new RequestVoteResponse(voteGranted, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
@@ -70,7 +73,7 @@ namespace Neutrino.Consensus.States
         {
             if (_consensusContext.NodeStates == null || _consensusContext.NodeStates.Count == 0)
             {
-                _consensusContext.State = new Leader(_consensusContext);
+                _consensusContext.State = new Leader(_consensusContext, _logger);
                 return;
             }
 
@@ -94,14 +97,14 @@ namespace Neutrino.Consensus.States
                     
                     if(!CollectVotes(tasks))
                     {
-                        Console.WriteLine($"All other nodes are disabled. Current node can be a leader.");
-                        _consensusContext.State = new Leader(_consensusContext);
+                        _logger.LogInformation($"All other nodes are disabled. Current node can be a leader.");
+                        _consensusContext.State = new Leader(_consensusContext, _logger);
                         break;
                     }
 
                     if (CurrentNodeCanBeLeader())
                     {
-                        _consensusContext.State = new Leader(_consensusContext);
+                        _consensusContext.State = new Leader(_consensusContext, _logger);
                         break;
                     }
 
@@ -131,11 +134,11 @@ namespace Neutrino.Consensus.States
                         nodeState.VoteGranted = requestVoteResponse.VoteGranted;
                     }
 
-                    Console.WriteLine($"Vote from node ({requestVoteResponse.Node.Id}): {requestVoteResponse.VoteGranted} (term: {_consensusContext.CurrentTerm}).");
+                    _logger.LogInformation($"Vote from node ({requestVoteResponse.Node.Id}): {requestVoteResponse.VoteGranted} (term: {_consensusContext.CurrentTerm}).");
                 }
                 else
                 {
-                    Console.WriteLine($"Vote failed with task status: {task.Status} (term: {_consensusContext.CurrentTerm}).");
+                    _logger.LogWarning($"Vote failed with task status: {task.Status} (term: {_consensusContext.CurrentTerm}).");
                     amountOfFailed++;
                 }
             }

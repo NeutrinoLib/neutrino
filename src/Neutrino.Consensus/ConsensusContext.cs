@@ -27,11 +27,16 @@ namespace Neutrino.Consensus
         private HttpClient _httpClient;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly NodeVote _nodeVote;
+        private readonly ILogger<IConsensusContext> _logger;
 
-        public ConsensusContext(IApplicationLifetime applicationLifetime, HttpClient httpClient)
+        public ConsensusContext(
+            IApplicationLifetime applicationLifetime, 
+            HttpClient httpClient,
+            ILogger<IConsensusContext> logger)
         {
             _applicationLifetime = applicationLifetime;
             _httpClient = httpClient;
+            _logger = logger;
 
             _applicationLifetime.ApplicationStopping.Register(DisposeResources);
             _nodeVote = new NodeVote();
@@ -56,12 +61,12 @@ namespace Neutrino.Consensus
             }
 
             RandomElectionTimeout();
-            State = new Follower(this);
+            State = new Follower(this, _logger);
         }
 
         public void EnsureLogConsistency()
         {
-            Console.WriteLine("Ensure log is consistency process started...");
+            _logger.LogInformation("Ensure log is consistency process started...");
 
             _logReplicable.OnClearLog();
 
@@ -79,7 +84,7 @@ namespace Neutrino.Consensus
                 _logReplicable.OnLogReplication(appendEntriesEvent);
             }
 
-            Console.WriteLine("Process of log consistency finished");
+            _logger.LogInformation("Process of log consistency finished");
         }
 
         private void RandomElectionTimeout()
@@ -89,7 +94,7 @@ namespace Neutrino.Consensus
                 _consensusOptions.MinElectionTimeout, 
                 _consensusOptions.MaxElectionTimeout);
 
-            Console.WriteLine($"Election timeout was calculated: {_electionTimeout}");
+            _logger.LogInformation($"Election timeout was calculated: {_electionTimeout}");
         }
 
         public NodeInfo LeaderNode { get; set; }
@@ -118,7 +123,7 @@ namespace Neutrino.Consensus
                 _stateObservable.OnStateChanging(oldState, value);
 
                 _state = value;
-                Console.WriteLine($"Node is now in '{_state.GetType().Name}' state.");
+                _logger.LogInformation($"Node is now in '{_state.GetType().Name}' state.");
                 _state.Proceed();
 
                 _stateObservable.OnStateChanged(oldState, value);

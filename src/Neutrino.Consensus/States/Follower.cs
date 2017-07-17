@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Neutrino.Consensus.Events;
 using Neutrino.Consensus.Responses;
 
@@ -11,11 +12,13 @@ namespace Neutrino.Consensus.States
         private int _lastRertievedHeartbeat = 0;
         private CancellationTokenSource _checkHeartbeatTokenSource;
         private readonly IConsensusContext _consensusContext;
+        private readonly ILogger<IConsensusContext> _logger;
         private readonly object _ensureLogLock = new object();
 
-        public Follower(IConsensusContext consensusContext)
+        public Follower(IConsensusContext consensusContext, ILogger<IConsensusContext> logger)
         {
             _consensusContext = consensusContext;
+            _logger = logger;
         }
 
         public override void Proceed()
@@ -56,7 +59,7 @@ namespace Neutrino.Consensus.States
             var requestVoteEvent = triggeredEvent as RequestVoteEvent;
             if(requestVoteEvent != null)
             {
-                Console.WriteLine($"Retreived 'LeaderRequestEvent' event (currentTerm: {requestVoteEvent.Term}, node: {requestVoteEvent.Node.Id}).");
+                _logger.LogInformation($"Retreived 'LeaderRequestEvent' event (currentTerm: {requestVoteEvent.Term}, node: {requestVoteEvent.Node.Id}).");
 
                 bool voteValue = OtherNodeCanBeLeader(requestVoteEvent);
                 if(voteValue)
@@ -67,11 +70,11 @@ namespace Neutrino.Consensus.States
 
                     _lastRertievedHeartbeat = 0;
 
-                    Console.WriteLine($"Voting for node ({requestVoteEvent.Node.Id}): GRANTED.");
+                    _logger.LogInformation($"Voting for node ({requestVoteEvent.Node.Id}): GRANTED.");
                 }
                 else
                 {
-                    Console.WriteLine($"Voting for node ({requestVoteEvent.Node.Id}): NOT GRANTED.");
+                    _logger.LogInformation($"Voting for node ({requestVoteEvent.Node.Id}): NOT GRANTED.");
                 }
 
                 return new RequestVoteResponse(voteValue, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
@@ -103,7 +106,7 @@ namespace Neutrino.Consensus.States
                 if(_lastRertievedHeartbeat >= _consensusContext.ElectionTimeout)
                 {
                     StopCheckingHeartbeat();
-                    _consensusContext.State = new Candidate(_consensusContext);
+                    _consensusContext.State = new Candidate(_consensusContext, _logger);
                 }
 
                 Thread.Sleep(50);
