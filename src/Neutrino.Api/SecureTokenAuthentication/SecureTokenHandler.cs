@@ -25,17 +25,21 @@ namespace Neutrino.Api.SecureTokenAuthentication
 
             if (string.IsNullOrWhiteSpace(authorization))
             {
-                return await Task.FromResult(AuthenticateResult.Skip());
+                return AuthenticateResult.Fail($"Authorization header not exists.");
             }
 
             if (authorization.StartsWith($"{Options.AuthenticationScheme} ", StringComparison.OrdinalIgnoreCase))
             {
                 token = authorization.Substring($"{Options.AuthenticationScheme} ".Length).Trim();
             }
+            else
+            {
+                return AuthenticateResult.Skip();
+            }
 
             if (string.IsNullOrWhiteSpace(token))
             {
-                return AuthenticateResult.Skip();
+                return AuthenticateResult.Fail($"Value for {Options.AuthenticationScheme} scheme not exists.");
             }
 
             bool isValid = ValidateToken(token);
@@ -60,17 +64,11 @@ namespace Neutrino.Api.SecureTokenAuthentication
         /// </summary>
         /// <param name="context">Context of challenge.</param>
         /// <returns>Returns result.</returns>
-        protected override async Task<bool> HandleUnauthorizedAsync(ChallengeContext context)
+        protected override Task<bool> HandleUnauthorizedAsync(ChallengeContext context)
         {
-            var authResult = await HandleAuthenticateOnceSafeAsync();
-
-            if (!authResult.Skipped)
-            {
-                Response.StatusCode = StatusCodes.Status401Unauthorized;
-            }
-
+            Response.StatusCode = StatusCodes.Status401Unauthorized;
             Response.Headers.Append(HeaderNames.WWWAuthenticate, $"{Options.AuthenticationScheme} realm=\"{Options.Realm}\"");
-            return false;
+            return Task.FromResult(false);
         }
 
         private bool ValidateToken(string token)

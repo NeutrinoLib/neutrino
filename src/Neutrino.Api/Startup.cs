@@ -89,6 +89,8 @@ namespace Neutrino.Api
                 options.IncludeXmlComments(xmlPathConsensus);
             });
 
+            services.AddAuthorization();
+
             services.AddSingleton<HttpClient, HttpClient>();
             services.AddSingleton<IStoreContext, StoreContext>();
             services.AddSingleton<IHealthService, HealthService>();
