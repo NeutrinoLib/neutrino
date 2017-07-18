@@ -35,23 +35,35 @@ namespace Neutrino.Core.Repositories
 
         public void Create(T entity)
         {
-            entity.CreatedDate = DateTime.UtcNow;
-            if(string.IsNullOrEmpty(entity.Id))
+            using(var transaction = _storeContext.Repository.BeginTrans())
             {
-                entity.Id = Guid.NewGuid().ToString();
-            }
+                entity.CreatedDate = DateTime.UtcNow;
+                if(string.IsNullOrEmpty(entity.Id))
+                {
+                    entity.Id = Guid.NewGuid().ToString();
+                }
 
-            _storeContext.Repository.Insert(entity);
+                _storeContext.Repository.Insert(entity);
+                transaction.Commit();
+            }
         }
 
         public void Update(T entity)
         {
-            _storeContext.Repository.Update(entity);
+            using(var transaction = _storeContext.Repository.BeginTrans())
+            {
+                _storeContext.Repository.Update(entity);
+                transaction.Commit();
+            }
         }
 
         public void Delete(string id)
         {
-            _storeContext.Repository.Delete<T>(id);
+            using(var transaction = _storeContext.Repository.BeginTrans())
+            {
+                _storeContext.Repository.Delete<T>(id);
+                transaction.Commit();
+            }
         }
 
         public void Clear()
