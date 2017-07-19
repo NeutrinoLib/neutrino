@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Flurl;
+using Microsoft.Extensions.Logging;
 using Neutrino.Consensus.Entities;
 using Neutrino.Consensus.Events;
 using Neutrino.Consensus.Responses;
@@ -18,11 +19,16 @@ namespace Neutrino.Consensus
     {
         private readonly IConsensusContext _consensusContext;
         private readonly HttpClient _httpClient;
+        private readonly ILogger<LogReplication> _logger;
 
-        public LogReplication(IConsensusContext consensusContext, HttpClient httpClient)
+        public LogReplication(
+            IConsensusContext consensusContext, 
+            HttpClient httpClient,
+            ILogger<LogReplication> logger)
         {
             _consensusContext = consensusContext;
             _httpClient = httpClient;
+            _logger = logger;
         }
 
         public async Task<ConsensusResult> DistributeEntry(object objectData, MethodType method)
@@ -41,7 +47,10 @@ namespace Neutrino.Consensus
             {
                 await Task.WhenAll(tasks.ToArray());
             }
-            catch(Exception) { }
+            catch(Exception exception) 
+            { 
+                _logger.LogDebug("Exception during distributing entries.", exception);
+            }
             
             int successful = await CollectResponses(tasks);
 
@@ -82,11 +91,15 @@ namespace Neutrino.Consensus
                 foreach (var node in _consensusContext.NodeStates)
                 {
                     var task = SendAppendEntries(node.Node, entries);
-                    tasks.Add(task);
+                    if(task != null)
+                    {
+                        tasks.Add(task);
+                    }
                 }
             }
-            catch (Exception)
+            catch (Exception exception)
             {
+                _logger.LogDebug("Exception during collecting tasks to distribute entries.", exception);
             }
 
             return tasks;
@@ -94,18 +107,26 @@ namespace Neutrino.Consensus
 
         private Task<HttpResponseMessage> SendAppendEntries(NodeInfo node, IList<Entry> entries)
         {
-            var url = node.Address.AppendPathSegment("api/raft/append-entries");
-            var request = new HttpRequestMessage(HttpMethod.Post, url);
-            request.Headers.Authorization = new AuthenticationHeaderValue(
-                _consensusContext.ConsensusOptions.AuthenticationScheme, _consensusContext.ConsensusOptions.AuthenticationParameter);
+            try
+            {
+                var url = node.Address.AppendPathSegment("api/raft/append-entries");
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Headers.Authorization = new AuthenticationHeaderValue(
+                    _consensusContext.ConsensusOptions.AuthenticationScheme, _consensusContext.ConsensusOptions.AuthenticationParameter);
 
-            var appendEntriesEvent = new AppendEntriesEvent(_consensusContext.CurrentTerm, _consensusContext.CurrentNode, entries);
-            var jsonContent = JsonConvert.SerializeObject(appendEntriesEvent);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            request.Content = content;
+                var appendEntriesEvent = new AppendEntriesEvent(_consensusContext.CurrentTerm, _consensusContext.CurrentNode, entries);
+                var jsonContent = JsonConvert.SerializeObject(appendEntriesEvent);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                request.Content = content;
 
-            var task = _httpClient.SendAsync(request);
-            return task;
+                var task = _httpClient.SendAsync(request);
+                return task;
+            }
+            catch (Exception exception)
+            {
+                _logger.LogDebug("Exception during sending entries.", exception);
+                return null;
+            }
         }
     }
 }

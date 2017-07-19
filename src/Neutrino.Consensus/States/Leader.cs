@@ -44,6 +44,14 @@ namespace Neutrino.Consensus.States
                 return new RequestVoteResponse(false, _consensusContext.CurrentTerm, _consensusContext.CurrentNode);
             }
 
+            var appendEntriesEvent = triggeredEvent as AppendEntriesEvent;
+            if(appendEntriesEvent != null)
+            {
+                StopSendingHeartbeat();
+                _consensusContext.State = new Follower(_consensusContext, _logger);
+                return new EmptyResponse();
+            }
+
             return new EmptyResponse();
         }
 
