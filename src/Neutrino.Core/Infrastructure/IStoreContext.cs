@@ -1,11 +1,11 @@
 using System;
-using LiteDB;
+using Microsoft.Data.Sqlite;
 using Neutrino.Entities;
 
 namespace Neutrino.Core.Infrastructure
 {
     public interface IStoreContext : IDisposable
     {
-        LiteRepository Repository { get;  }
+        SqliteConnection Repository { get;  }
     }
 }

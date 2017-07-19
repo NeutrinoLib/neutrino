@@ -9,7 +9,7 @@
     <ProjectReference Include="../Neutrino.Consensus/Neutrino.Consensus.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="LiteDB" Version="3.1.1" />
+    <PackageReference Include="Microsoft.Data.SQLite" Version="1.1.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="1.1.2" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="1.1.2" />

@@ -8,7 +8,7 @@ namespace Neutrino.Core.Repositories
     {
         IEnumerable<T> Get();
 
-        IEnumerable<T> Get(Expression<Func<T, bool>> predicate);
+        IEnumerable<T> Get(Func<T, bool> predicate);
 
         T Get(string id);
 
