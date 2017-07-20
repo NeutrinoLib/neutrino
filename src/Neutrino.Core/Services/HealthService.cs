@@ -80,6 +80,8 @@ namespace Neutrino.Core.Services
             {
                 tokenSource.Cancel();
             }
+
+            _tokenSources.Remove(key);
         }
 
         public ServiceHealth GetServiceHealth(string serviceId)
