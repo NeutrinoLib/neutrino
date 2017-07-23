@@ -91,14 +91,14 @@ namespace Neutrino.Consensus.States
             var tasks = new List<Task<HttpResponseMessage>>();
             foreach(var nodeState in _consensusContext.NodeStates)
             {
-                var task = SendHeartbeat(nodeState.Node);
+                var task = SendHeartbeat(nodeState.NodeAddress);
                 tasks.Add(task);
             }
         }
 
-        private Task<HttpResponseMessage> SendHeartbeat(NodeInfo node)
+        private Task<HttpResponseMessage> SendHeartbeat(string nodeAddress)
         {
-            var url = node.Address.AppendPathSegment("api/raft/append-entries");
+            var url = nodeAddress.AppendPathSegment("api/raft/append-entries");
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Headers.Authorization = new AuthenticationHeaderValue(
                 _consensusContext.ConsensusOptions.AuthenticationScheme, _consensusContext.ConsensusOptions.AuthenticationParameter);

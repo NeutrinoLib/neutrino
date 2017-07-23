@@ -129,7 +129,7 @@ namespace Neutrino.Consensus.States
                     var requestVoteResponse = JsonConvert.DeserializeObject<RequestVoteResponse>(responseContent);
                     _consensusContext.CurrentTerm = requestVoteResponse.CurrentTerm;
 
-                    var nodeState = _consensusContext.NodeStates.FirstOrDefault(x => x.Node.Id == requestVoteResponse.Node.Id);
+                    var nodeState = _consensusContext.NodeStates.FirstOrDefault(x => x.NodeAddress == requestVoteResponse.Node.Address);
                     if(nodeState != null)
                     {
                         nodeState.VoteGranted = requestVoteResponse.VoteGranted;
@@ -162,7 +162,7 @@ namespace Neutrino.Consensus.States
             {
                 foreach (var nodeState in _consensusContext.NodeStates.Where(x => x.VoteGranted == false))
                 {
-                    var task = SendLeaderRequestVote(nodeState.Node);
+                    var task = SendLeaderRequestVote(nodeState.NodeAddress);
                     tasks.Add(task);
                 }
 
@@ -176,10 +176,10 @@ namespace Neutrino.Consensus.States
             return tasks;
         }
 
-        private Task<HttpResponseMessage> SendLeaderRequestVote(NodeInfo node)
+        private Task<HttpResponseMessage> SendLeaderRequestVote(string nodeAddress)
         {
-            var url = node.Address.AppendPathSegment("api/raft/request-vote");
-            _logger.LogInformation($"Sending leader request to node: '{node.Id}'. Endpoint address: '{url}'.");
+            var url = nodeAddress.AppendPathSegment("api/raft/request-vote");
+            _logger.LogInformation($"Sending leader request to node: '{nodeAddress}'. Endpoint address: '{url}'.");
 
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Headers.Authorization = new AuthenticationHeaderValue(

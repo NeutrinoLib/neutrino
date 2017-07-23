@@ -90,7 +90,7 @@ namespace Neutrino.Consensus
             {
                 foreach (var node in _consensusContext.NodeStates)
                 {
-                    var task = SendAppendEntries(node.Node, entries);
+                    var task = SendAppendEntries(node.NodeAddress, entries);
                     if(task != null)
                     {
                         tasks.Add(task);
@@ -105,11 +105,11 @@ namespace Neutrino.Consensus
             return tasks;
         }
 
-        private Task<HttpResponseMessage> SendAppendEntries(NodeInfo node, IList<Entry> entries)
+        private Task<HttpResponseMessage> SendAppendEntries(string nodeAddress, IList<Entry> entries)
         {
             try
             {
-                var url = node.Address.AppendPathSegment("api/raft/append-entries");
+                var url = nodeAddress.AppendPathSegment("api/raft/append-entries");
                 var request = new HttpRequestMessage(HttpMethod.Post, url);
                 request.Headers.Authorization = new AuthenticationHeaderValue(
                     _consensusContext.ConsensusOptions.AuthenticationScheme, _consensusContext.ConsensusOptions.AuthenticationParameter);

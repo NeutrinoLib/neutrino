@@ -53,11 +53,11 @@ namespace Neutrino.Consensus
             _logReplicable = logReplicable;
 
             _nodeStates = new List<NodeState>();
-            if(_consensusOptions.Nodes != null)
+            if(_consensusOptions.NodesAddresses != null)
             {
-                foreach(var node in _consensusOptions.Nodes)
+                foreach(var nodeAddress in _consensusOptions.NodesAddresses)
                 {
-                    _nodeStates.Add(new NodeState { Node = node, VoteGranted = false });
+                    _nodeStates.Add(new NodeState { NodeAddress = nodeAddress, VoteGranted = false });
                 }
             }
 

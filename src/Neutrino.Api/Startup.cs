@@ -147,7 +147,7 @@ namespace Neutrino.Api
 
             applicationBuilder.UseConsensus(options => {
                 options.CurrentNode = applicationParameters.Value.CurrentNode;
-                options.Nodes = applicationParameters.Value.Nodes;
+                options.NodesAddresses = applicationParameters.Value.NodesAddresses;
                 options.MinElectionTimeout = applicationParameters.Value.MinElectionTimeout;
                 options.MaxElectionTimeout = applicationParameters.Value.MaxElectionTimeout;
                 options.HeartbeatTimeout = applicationParameters.Value.HeartbeatTimeout;

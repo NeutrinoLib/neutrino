@@ -8,7 +8,7 @@ namespace Neutrino.Consensus.Options
 {
     public class ConsensusOptions
     {
-        public IList<NodeInfo> Nodes { get; set; }
+        public IList<string> NodesAddresses { get; set; }
 
         public NodeInfo CurrentNode { get; set; }
 

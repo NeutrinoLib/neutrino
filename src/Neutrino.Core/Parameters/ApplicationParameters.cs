@@ -14,7 +14,7 @@ namespace Neutrino.Core.Services.Parameters
 
         public ConnectionStrings ConnectionStrings { get; set; }
 
-        public NodeInfo[] Nodes { get; set; }
+        public string[] NodesAddresses { get; set; }
 
         public NodeInfo CurrentNode { get; set; }
     }
