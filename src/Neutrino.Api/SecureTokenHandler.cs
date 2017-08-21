@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using Neutrino.Core.Services.Parameters;
 
 namespace Neutrino.Api
@@ -80,6 +81,8 @@ namespace Neutrino.Api
         /// <returns>A task.</returns>
         public Task ChallengeAsync(AuthenticationProperties properties)
         {
+            _context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            _context.Response.Headers.Append(HeaderNames.WWWAuthenticate, $"SecureToken realm=neutrino-api");
             return Task.FromResult(0);
         }
 
@@ -106,13 +109,6 @@ namespace Neutrino.Api
 
             return Task.FromResult(0);
         }
-
-        // protected override Task<bool> HandleUnauthorizedAsync(ChallengeContext context)
-        // {
-        //     Response.StatusCode = StatusCodes.Status401Unauthorized;
-        //     Response.Headers.Append(HeaderNames.WWWAuthenticate, $"{Options.AuthenticationScheme} realm=\"{Options.Realm}\"");
-        //     return Task.FromResult(false);
-        // }
 
         private bool ValidateToken(string token)
         {

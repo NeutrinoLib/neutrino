@@ -142,6 +142,8 @@ namespace Neutrino.Api
             applicationBuilder.UseCustomExceptionHandler();
             applicationBuilder.UseCors("AllowAllOrigins");
 
+            applicationBuilder.UseAuthentication();
+
             applicationBuilder.UseMvc();
 
             applicationBuilder.UseConsensus(options => {
