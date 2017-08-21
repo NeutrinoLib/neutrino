@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Net.Http;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,8 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.PlatformAbstractions;
-using Neutrino.Api.SecureTokenAuthentication;
 using Neutrino.Consensus;
 using Neutrino.Core.Diagnostics;
 using Neutrino.Core.Infrastructure;
@@ -61,12 +60,20 @@ namespace Neutrino.Api
             services.AddMvc(config =>
             {
                 var policy = new AuthorizationPolicyBuilder()
-                    .AddAuthenticationSchemes(SecureTokenDefaults.AuthenticationScheme)
+                    .AddAuthenticationSchemes("SecureToken")
                     .RequireAuthenticatedUser()
                     .Build();
             }).AddJsonOptions(options =>
             {
                 options.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+            });
+
+            services.AddAuthenticationCore(configure => {
+                configure.AddScheme("SecureToken", builder => {
+                    builder.DisplayName = "Secure token";
+                    builder.HandlerType = typeof(IAuthenticationHandler);
+                });
+                configure.DefaultScheme = "SecureToken";
             });
 
             services.AddMemoryCache();
@@ -81,7 +88,7 @@ namespace Neutrino.Api
                     TermsOfService = "None"
                 });
 
-                var basePath = PlatformServices.Default.Application.ApplicationBasePath;
+                var basePath = System.AppContext.BaseDirectory;
                 var xmlPathApi = Path.Combine(basePath, "Neutrino.Api.xml"); 
                 options.IncludeXmlComments(xmlPathApi);
 
@@ -89,7 +96,7 @@ namespace Neutrino.Api
                 options.IncludeXmlComments(xmlPathConsensus);
             });
 
-            services.AddAuthorization();
+            services.AddScoped<IAuthenticationHandler, SecureTokenHandler>();
 
             services.AddSingleton<HttpClient, HttpClient>();
             services.AddSingleton<IStoreContext, StoreContext>();
@@ -134,14 +141,6 @@ namespace Neutrino.Api
 
             applicationBuilder.UseCustomExceptionHandler();
             applicationBuilder.UseCors("AllowAllOrigins");
-
-            var secureTokenOptions = new SecureTokenOptions
-            {
-                SecureToken = _configuration["SecureToken"],
-                AuthenticationScheme = SecureTokenDefaults.AuthenticationScheme,
-                Realm = SecureTokenDefaults.Realm
-            };
-            applicationBuilder.UseSecureTokenAuthentication(secureTokenOptions);
 
             applicationBuilder.UseMvc();
 
