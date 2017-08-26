@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Neutrino.Core
+namespace Neutrino.Entities
 {
     public class ActionConfirmation
     {
@@ -29,13 +30,23 @@ namespace Neutrino.Core
         {
             return new ActionConfirmation { WasSuccessful = false, Message = message, Errors = errors };
         }
+
+        public static ActionConfirmation<T> CreateError<T>(string message)
+        {
+            return new ActionConfirmation<T> { WasSuccessful = false, Message = message };
+        }
+
+        public static ActionConfirmation<T> CreateError<T>(string message, ValidationError[] errors)
+        {
+            return new ActionConfirmation<T> { WasSuccessful = false, Message = message, Errors = errors };
+        }
     }
 
     public class ActionConfirmation<T> : ActionConfirmation
     {
         public T ObjectData { get; private set; }
 
-        public static ActionConfirmation CreateSuccessful(T objectData)
+        public static ActionConfirmation<T> CreateSuccessful(T objectData)
         {
             return new ActionConfirmation<T> { WasSuccessful = true, ObjectData = objectData };
         }

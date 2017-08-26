@@ -1,15 +1,15 @@
-using FluentBehave;
-using System;
-using Neutrino.Entities;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using System.Text;
-using Neutrino.Api.Specs.Infrastructure;
-using Xunit;
 using System.Net;
-using Newtonsoft.Json.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using FluentBehave;
+using Neutrino.Api.Specs.Infrastructure;
+using Neutrino.Entities;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Xunit;
 
 namespace Neutrino.Api.Specs.Implementations.Services
 {
@@ -171,7 +171,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
         private async Task ThenServiceHealthIs(string healthStatus)
         {
             Thread.Sleep(2000);
-            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpClient = ApiTestServer.GetHttpClient();
             var httpResponseMessage = await httpClient.GetAsync($"/api/services/{_serviceId}/health/current");
 
             var response = await httpResponseMessage.Content.ReadAsStringAsync();
@@ -199,7 +199,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
             var jsonString = JsonConvert.SerializeObject(service);
             var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpClient = ApiTestServer.GetHttpClient();
             _response = await httpClient.PostAsync("/api/services", httpContent);
         }
 
@@ -222,7 +222,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
             var jsonString = JsonConvert.SerializeObject(service);
             var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpClient = ApiTestServer.GetHttpClient();
             _response = await httpClient.PutAsync($"/api/services/{serviceId}", httpContent);
             _responseContent = await _response.Content.ReadAsStringAsync();
 

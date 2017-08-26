@@ -1,7 +1,11 @@
 using System;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
+using Neutrino.Api;
 
 namespace Neutrino.Api.Specs.Infrastructure
 {
@@ -32,9 +36,25 @@ namespace Neutrino.Api.Specs.Infrastructure
             }
         }
 
+        public static HttpClient GetHttpClient()
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables();
+
+            var configuration = builder.Build();
+            var secureToken = configuration["SecureToken"];
+
+            var httpClient = Instance.CreateClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("SecureToken", secureToken);
+
+            return httpClient;
+        }
+
         private static TestServer CreateTestServer()
         {
-            RemoveLiteDbFile();
+            RemoveDbFile();
 
             var webHostBuilder = new WebHostBuilder()
                 .UseStartup<Startup>();
@@ -42,10 +62,9 @@ namespace Neutrino.Api.Specs.Infrastructure
             return new TestServer(webHostBuilder);
         }
 
-        private static void RemoveLiteDbFile()
+        private static void RemoveDbFile()
         {
-            File.Delete("nosqlstore.db");
-            File.Delete("nosqlstore-journal.db");
+            File.Delete("database.sqlite");
         }
 
         private void Dispose(bool disposing)

@@ -1,13 +1,13 @@
-using FluentBehave;
-using System;
-using Neutrino.Entities;
-using System.Net.Http;
-using Xunit;
 using System.Net;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Neutrino.Api.Specs.Infrastructure;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
+using FluentBehave;
+using Neutrino.Api.Specs.Infrastructure;
+using Neutrino.Entities;
+using Newtonsoft.Json;
+using Xunit;
 
 namespace Neutrino.Api.Specs.Implementations.Services
 {
@@ -47,7 +47,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
         [When("List of services is downloaded")]
         private async Task WhenListOfServicesIsDownloaded()
         {
-            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpClient = ApiTestServer.GetHttpClient();
             _response = await httpClient.GetAsync($"/api/services");
             _responseContent = await _response.Content.ReadAsStringAsync();
         }
@@ -80,7 +80,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
             var jsonString = JsonConvert.SerializeObject(service);
             var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpClient = ApiTestServer.GetHttpClient();
             _response = await httpClient.PostAsync("/api/services", httpContent);
         }
 

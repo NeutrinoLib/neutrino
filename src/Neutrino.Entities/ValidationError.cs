@@ -1,4 +1,4 @@
-namespace Neutrino.Core
+namespace Neutrino.Entities
 {
     public class ValidationError
     {

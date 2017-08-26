@@ -1,16 +1,16 @@
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentBehave;
-using System;
 using Neutrino.Api.Specs.Infrastructure;
 using Neutrino.Entities;
 using Newtonsoft.Json;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Xunit;
-using System.Text;
-using System.Linq;
 using Newtonsoft.Json.Linq;
-using System.Threading;
-using System.Net;
+using Xunit;
 
 namespace Neutrino.Api.Specs.Implementations.Services
 {
@@ -238,7 +238,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
         [Then("Service (.*) was registered")]
         private async Task ThenServiceWasRegistered(string serviceId)
         {
-            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpClient = ApiTestServer.GetHttpClient();
             var serviceResponse = await httpClient.GetStringAsync($"/api/services/{serviceId}");
 
             var service = JsonConvert.DeserializeObject<Service>(serviceResponse);
@@ -256,7 +256,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
         private async Task ThenServiceHealthIs(string healthStatus)
         {
             Thread.Sleep(2000);
-            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpClient = ApiTestServer.GetHttpClient();
             var httpResponseMessage = await httpClient.GetAsync($"/api/services/{_serviceId}/health/current");
 
             var response = await httpResponseMessage.Content.ReadAsStringAsync();
@@ -284,7 +284,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
             var jsonString = JsonConvert.SerializeObject(service);
             var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpClient = ApiTestServer.GetHttpClient();
             _response = await httpClient.PostAsync("/api/services", httpContent);
         }
 

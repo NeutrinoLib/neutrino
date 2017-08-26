@@ -1,13 +1,13 @@
-using FluentBehave;
-using System;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+using FluentBehave;
+using Neutrino.Api.Specs.Infrastructure;
 using Neutrino.Entities;
 using Newtonsoft.Json;
-using System.Net.Http;
-using Neutrino.Api.Specs.Infrastructure;
-using System.Text;
 using Xunit;
-using System.Net;
 
 namespace Neutrino.Api.Specs.Implementations.Services
 {
@@ -52,7 +52,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
         [When("Service (.*) is deleting")]
         private async Task WhenServiceIsDeleting(string serviceId)
         {
-            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpClient = ApiTestServer.GetHttpClient();
             _response = await httpClient.DeleteAsync($"/api/services/{serviceId}");
         }
 
@@ -65,7 +65,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
         [Then("Service (.*) not exists")]
         private async Task ThenServiceNotExists(string serviceId)
         {
-            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpClient = ApiTestServer.GetHttpClient();
             var response = await httpClient.GetAsync($"/api/services/{serviceId}");
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -87,7 +87,7 @@ namespace Neutrino.Api.Specs.Implementations.Services
             var jsonString = JsonConvert.SerializeObject(service);
             var httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-            var httpClient = ApiTestServer.Instance.CreateClient();
+            var httpClient = ApiTestServer.GetHttpClient();
             _response = await httpClient.PostAsync("/api/services", httpContent);
         }
 
