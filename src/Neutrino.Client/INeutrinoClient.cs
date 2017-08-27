@@ -14,8 +14,6 @@ namespace Neutrino.Client
 
         Task<Service> GetServiceByIdAsync(string id);
 
-        Task<Service> GetServiceByAddressAsync(string address);
-
         Task<ActionConfirmation<Service>> AddServiceAsync(Service service);
 
         Task<ActionConfirmation> UpdateServiceAsync(string id, Service service);
@@ -30,10 +28,10 @@ namespace Neutrino.Client
 
         Task<ActionConfirmation> DeleteKvPropertyAsync(string key);
 
-        Task<IList<ServiceHealth>> GetServiceHealthAsync(string serviceId);
+        Task<IList<ServiceHealth>> GetServiceHealthAsync(string id);
 
-        Task<PageList<ServiceHealth>> GetServiceHealthAsync(string serviceId, int offset, int limit);
+        Task<PageList<ServiceHealth>> GetServiceHealthAsync(string id, int offset, int limit);
 
-        Task<ServiceHealth> GetLastServiceHealthAsync(string serviceId);
+        Task<ServiceHealth> GetLastServiceHealthAsync(string id);
     }
 }
