@@ -24,17 +24,18 @@ namespace Neutrino.Client.Specs
         [Given("Neutrino server is up and running")]
         private void GivenNeutrinoServerIsUpAndRunning()
         {
-            _serverAddress = "http://u4neutrino-dev-01.azurewebsites.net";
+            _serverAddress = "http://localhost:5000";
         }
 
         [When("KV property with random key and value is being added")]
         private async Task WhenKVPropertyWithRandomKeyAndValueIsBeingAdded()
         {
-			var httpRequestService = new HttpRequestService();
-			var neutrinoClientOptions = new NeutrinoClientOptions();
-			neutrinoClientOptions.Addresses = new string[] { _serverAddress };
-			neutrinoClientOptions.SecureToken = "733ecbd2-8d6c-4546-80a8-8e1874dd3889";
-			var neutrinoClient = new NeutrinoClient(httpRequestService, neutrinoClientOptions);
+            var neutrinoClientOptions = new NeutrinoClientOptions();
+            neutrinoClientOptions.Addresses = new string[] { _serverAddress };
+			neutrinoClientOptions.SecureToken = "4e57e961-5f2e-4b24-893f-7842c5ccff97";
+
+			var httpRequestService = new HttpRequestService(neutrinoClientOptions);
+			var neutrinoClient = new NeutrinoClient(httpRequestService);
 
             _actionConfirmation = await neutrinoClient.AddKvPropertyAsync(new KvProperty { Key = Guid.NewGuid().ToString(), Value = "Wartosc" });
         }

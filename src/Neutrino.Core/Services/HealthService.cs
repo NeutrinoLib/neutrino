@@ -140,7 +140,7 @@ namespace Neutrino.Core.Services
             var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Delete);
             if(consensusResult.WasSuccessful)
             {
-                _serviceRepository.Delete(service.Id);
+                _serviceRepository.Remove(service.Id);
             
                 var key = GetKey(service.Id);
                 _tokenSources.Remove(key);

@@ -130,7 +130,7 @@ namespace Neutrino.Core.Services
                 var consensusResult = await _logReplication.DistributeEntry(service, MethodType.Delete);
                 if(consensusResult.WasSuccessful)
                 {
-                    _serviceRepository.Delete(id);
+                    _serviceRepository.Remove(id);
                     _healthService.StopHealthChecker(id);
                 }
                 else
@@ -140,7 +140,7 @@ namespace Neutrino.Core.Services
             }
             else
             {
-                _serviceRepository.Delete(id);
+                _serviceRepository.Remove(id);
             }
 
             return ActionConfirmation.CreateSuccessful();

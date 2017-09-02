@@ -1,58 +1,85 @@
-using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Options;
-using Neutrino.Core.Services.Parameters;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using Neutrino.Entities;
 
 namespace Neutrino.Core.Infrastructure
 {
     public class StoreContext : IStoreContext
     {
-        public SqliteConnection Repository { get; private set; }
+        private readonly ConcurrentDictionary<Type, object> _sets;
+        
+        private object _lock = new object();
 
-        private readonly ApplicationParameters _applicationParameters;
-
-        public StoreContext(IOptions<ApplicationParameters> applicationParameters)
+        public StoreContext()
         {
-            _applicationParameters = applicationParameters.Value;
-            Repository = new SqliteConnection(_applicationParameters.ConnectionStrings.DefaultConnection);
-            Repository.Open();
-
-            CreateTableIfNotExists();
+            _sets = new ConcurrentDictionary<Type, object>();
         }
 
-        private bool disposedValue = false;
-
-        private void CreateTableIfNotExists()
+        public IList<T> Set<T>() where T : BaseEntity
         {
-            string table = "CREATE TABLE IF NOT EXISTS nosql (type varchar(400), id varchar(100), json text)";
-            using(var command = new SqliteCommand(table, Repository))
+            lock(_lock)
             {
-                command.ExecuteNonQuery();
-            }
-
-            string index = "CREATE UNIQUE INDEX IF NOT EXISTS nosql_primary_key ON nosql (type, id)";
-            using(var command = new SqliteCommand(index, Repository))
-            {
-                command.ExecuteNonQuery();
+                var set = GetOrAddSet<T>();
+                return new List<T>(set);
             }
         }
 
-        protected virtual void Dispose(bool disposing)
+        public void Add<T>(T entity) where T : BaseEntity
         {
-            if (!disposedValue)
+            lock(_lock)
             {
-                if (disposing)
+                var set = GetOrAddSet<T>();
+                set.Add(entity);
+            }
+        }
+
+        public void Remove<T>(string id) where T : BaseEntity
+        {
+            lock(_lock)
+            {
+                var set = GetOrAddSet<T>();
+                var entity = set.FirstOrDefault(x => x.Id == id);
+
+                if(entity != null)
                 {
-                    Repository.Dispose();
+                    set.Remove(entity);
                 }
-
-                disposedValue = true;
             }
         }
 
-        public void Dispose()
+        public void Update<T>(string id, T entity) where T : BaseEntity
         {
-            Dispose(true);
+            lock(_lock)
+            {
+                var set = GetOrAddSet<T>();
+                var entityFromSet = set.FirstOrDefault(x => x.Id == id);
+
+                set.Remove(entityFromSet);
+                set.Add(entity);
+            }
+        }
+
+        public void Clear<T>() where T : BaseEntity
+        {
+            lock(_lock)
+            {
+                var set = GetOrAddSet<T>();
+                set.Clear();
+            }
+        }
+
+        private IList<T> GetOrAddSet<T>()
+        {
+            var type = typeof(T);
+            if (!_sets.TryGetValue(type, out var set))
+            {
+                set = new List<T>();
+                _sets[type] = set;
+            }
+
+            return (IList<T>) set;
         }
     }
 }

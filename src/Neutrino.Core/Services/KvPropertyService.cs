@@ -105,7 +105,7 @@ namespace Neutrino.Core.Services
                 var consensusResult = await _logReplication.DistributeEntry(kvProperty, MethodType.Delete);
                 if(consensusResult.WasSuccessful)
                 {
-                    _kvPropertyRepository.Delete(id);
+                    _kvPropertyRepository.Remove(id);
                 }
                 else
                 {
@@ -114,7 +114,7 @@ namespace Neutrino.Core.Services
             }
             else
             {
-                _kvPropertyRepository.Delete(id);
+                _kvPropertyRepository.Remove(id);
             }
 
             return ActionConfirmation.CreateSuccessful();

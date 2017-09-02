@@ -16,7 +16,7 @@ namespace Neutrino.Core.Repositories
 
         void Update(T entity);
 
-        void Delete(string id);
+        void Remove(string id);
 
         void Clear();
     }
