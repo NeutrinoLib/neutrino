@@ -8,14 +8,17 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Neutrino.Api.Authentication;
 using Neutrino.Consensus;
 using Neutrino.Core.Diagnostics;
+using Neutrino.Core.Handlers;
 using Neutrino.Core.Infrastructure;
 using Neutrino.Core.Repositories;
 using Neutrino.Core.Services;
 using Neutrino.Core.Services.Parameters;
 using Neutrino.Core.Services.Validators;
-using Neutrino.Entities;
+using Neutrino.Core.Workers;
+using Neutrino.Entities.Model;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace Neutrino.Api
@@ -96,11 +99,11 @@ namespace Neutrino.Api
                 options.IncludeXmlComments(xmlPathConsensus);
             });
 
-            services.AddScoped<IAuthenticationHandler, SecureTokenHandler>();
+            services.AddScoped<IAuthenticationHandler, SecureTokenAuthenticationHandler>();
 
             services.AddSingleton<HttpClient, HttpClient>();
             services.AddSingleton<IStoreContext, StoreContext>();
-            services.AddSingleton<IHealthService, HealthService>();
+            services.AddSingleton<IServiceHealthWorker, ServiceHealthWorker>();
 
             services.AddScoped<IRepository<Service>, Repository<Service>>();
             services.AddScoped<IRepository<ServiceHealth>, Repository<ServiceHealth>>();
@@ -113,7 +116,7 @@ namespace Neutrino.Api
             services.AddScoped<IServiceValidator, ServiceValidator>();
             services.AddScoped<IKvPropertyValidator, KvPropertyValidator>();
 
-            services.AddConsensus<StateObserverService, LogReplicationService>();
+            services.AddConsensus<StateObserverHandler, LogReplicationHandler>();
         }
 
         /// <summary>

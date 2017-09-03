@@ -1,6 +1,6 @@
 using System.Net.Http;
 using System.Threading.Tasks;
-using Neutrino.Entities;
+using Neutrino.Entities.Response;
 
 namespace Neutrino.Client
 {

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neutrino.Consensus;
 using Neutrino.Core.Services;
-using Neutrino.Entities;
+using Neutrino.Entities.Model;
 
 namespace Neutrino.Api.Controllers
 {

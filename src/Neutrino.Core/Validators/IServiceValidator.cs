@@ -1,4 +1,5 @@
-using Neutrino.Entities;
+using Neutrino.Entities.Model;
+using Neutrino.Entities.Response;
 
 namespace Neutrino.Core.Services.Validators
 {

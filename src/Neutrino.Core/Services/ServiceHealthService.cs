@@ -4,7 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Neutrino.Core.Infrastructure;
 using Neutrino.Core.Repositories;
-using Neutrino.Entities;
+using Neutrino.Entities.List;
+using Neutrino.Entities.Model;
 
 namespace Neutrino.Core.Services
 {
@@ -12,12 +13,9 @@ namespace Neutrino.Core.Services
     {
         private readonly IRepository<ServiceHealth> _serviceHealthRepository;
 
-        private readonly IHealthService _healthService;
-
-        public ServiceHealthService(IRepository<ServiceHealth> serviceHealthRepository, IHealthService healthService)
+        public ServiceHealthService(IRepository<ServiceHealth> serviceHealthRepository)
         {
             _serviceHealthRepository = serviceHealthRepository;
-            _healthService = healthService;
         }
 
         public IEnumerable<ServiceHealth> Get()
@@ -26,15 +24,28 @@ namespace Neutrino.Core.Services
             return serviceHealth;
         }
 
-        public IEnumerable<ServiceHealth> Get(string serviceId)
+        public PageList<ServiceHealth> Get(string serviceId, int offset = 0, int limit = Int32.MaxValue)
         {
-            var serviceHealth = _serviceHealthRepository.Get(x => x.ServiceId == serviceId);
-            return serviceHealth;
+            var serviceHealthList = _serviceHealthRepository.Get(x => x.ServiceId == serviceId);
+            var pageList = new PageList<ServiceHealth>()
+            {
+                AllRows = serviceHealthList.Count(),
+                Limit = limit,
+                Offset = offset,
+                Rows = serviceHealthList.Skip(offset).Take(limit).ToList()
+            };
+
+            return pageList;
         }
 
         public ServiceHealth GetCurrent(string serviceId)
         {
-            var serviceHealth = _healthService.GetServiceHealth(serviceId);
+            var serviceHealth = _serviceHealthRepository.Get(x => x.ServiceId == serviceId).OrderByDescending(x => x.CreatedDate).FirstOrDefault();
+            if(serviceHealth == null)
+            {
+                serviceHealth = new ServiceHealth { HealthState = HealthState.Unknown };
+            }
+
             return serviceHealth;
         }
 

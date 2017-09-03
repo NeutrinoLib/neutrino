@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Neutrino.Entities;
+using Neutrino.Entities.Model;
 
 namespace Neutrino.Core.Infrastructure
 {

@@ -11,11 +11,11 @@ using Neutrino.Consensus;
 using Neutrino.Consensus.Entities;
 using Neutrino.Core.Infrastructure;
 using Neutrino.Core.Repositories;
-using Neutrino.Entities;
+using Neutrino.Entities.Model;
 
-namespace Neutrino.Core.Services
+namespace Neutrino.Core.Workers
 {
-    public class HealthService : IHealthService
+    public class ServiceHealthWorker : IServiceHealthWorker
     {
         private readonly IRepository<Service> _serviceRepository;
 
@@ -23,7 +23,7 @@ namespace Neutrino.Core.Services
 
         private readonly IDictionary<string, CancellationTokenSource> _tokenSources;
 
-        private readonly ILogger<HealthService> _logger;
+        private readonly ILogger<ServiceHealthWorker> _logger;
 
         private readonly IMemoryCache _memoryCache;
 
@@ -33,10 +33,10 @@ namespace Neutrino.Core.Services
 
         private readonly ILogReplication _logReplication;
 
-        public HealthService(
+        public ServiceHealthWorker(
             IRepository<Service> serviceRepository,
             IRepository<ServiceHealth> serviceHealthRepository, 
-            ILogger<HealthService> logger, 
+            ILogger<ServiceHealthWorker> logger, 
             IMemoryCache memoryCache,
             IApplicationLifetime applicationLifetime,
             HttpClient httpClient,

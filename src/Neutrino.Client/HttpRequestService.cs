@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Flurl;
-using Neutrino.Entities;
+using Neutrino.Entities.Response;
 using Newtonsoft.Json;
 
 namespace Neutrino.Client

@@ -9,6 +9,9 @@ using Neutrino.Core.Repositories;
 using Neutrino.Core.Diagnostics.Exceptions;
 using Neutrino.Core.Services.Validators;
 using Neutrino.Consensus;
+using Neutrino.Entities.Model;
+using Neutrino.Core.Workers;
+using Neutrino.Entities.Response;
 using Neutrino.Consensus.Entities;
 
 namespace Neutrino.Core.Services
@@ -21,7 +24,7 @@ namespace Neutrino.Core.Services
 
         private readonly IMemoryCache _memoryCache;
 
-        private readonly IHealthService _healthService;
+        private readonly IServiceHealthWorker _serviceHealthWorker;
 
         private readonly ILogReplication _logReplication;
 
@@ -31,14 +34,14 @@ namespace Neutrino.Core.Services
             IRepository<Service> serviceRepository,
             IServiceValidator serviceValidator,
             IMemoryCache memoryCache, 
-            IHealthService healthService,
+            IServiceHealthWorker serviceHealthWorker,
             ILogReplication logReplication,
             IConsensusContext consensusContext)
         {
             _serviceRepository = serviceRepository;
             _serviceValidator = serviceValidator;
             _memoryCache = memoryCache;
-            _healthService = healthService;
+            _serviceHealthWorker = serviceHealthWorker;
             _logReplication = logReplication;
             _consensusContext = consensusContext;
         }
@@ -71,7 +74,7 @@ namespace Neutrino.Core.Services
                     _serviceRepository.Create(service);
                     if (ShouldExecuteHealthChecking(service))
                     {
-                        _healthService.RunHealthChecker(service);
+                        _serviceHealthWorker.RunHealthChecker(service);
                     }
                 }
                 else
@@ -101,11 +104,11 @@ namespace Neutrino.Core.Services
                 if(consensusResult.WasSuccessful)
                 {
                     _serviceRepository.Update(service);
-                    _healthService.StopHealthChecker(service.Id);
+                    _serviceHealthWorker.StopHealthChecker(service.Id);
 
                     if(ShouldExecuteHealthChecking(service))
                     {
-                        _healthService.RunHealthChecker(service);
+                        _serviceHealthWorker.RunHealthChecker(service);
                     }
                 }
                 else
@@ -131,7 +134,7 @@ namespace Neutrino.Core.Services
                 if(consensusResult.WasSuccessful)
                 {
                     _serviceRepository.Remove(id);
-                    _healthService.StopHealthChecker(id);
+                    _serviceHealthWorker.StopHealthChecker(id);
                 }
                 else
                 {
@@ -151,7 +154,7 @@ namespace Neutrino.Core.Services
             var services = _serviceRepository.Get(x => x.HealthCheck.HealthCheckType == HealthCheckType.HttpRest);
             foreach(var service in services)
             {
-                _healthService.RunHealthChecker(service);
+                _serviceHealthWorker.RunHealthChecker(service);
             }
         }
 
@@ -160,7 +163,7 @@ namespace Neutrino.Core.Services
             var services = _serviceRepository.Get(x => x.HealthCheck.HealthCheckType == HealthCheckType.HttpRest);
             foreach(var service in services)
             {
-                _healthService.StopHealthChecker(service.Id);
+                _serviceHealthWorker.StopHealthChecker(service.Id);
             }
         }
 

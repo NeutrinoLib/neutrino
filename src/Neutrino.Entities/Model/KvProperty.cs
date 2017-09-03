@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Neutrino.Entities
+namespace Neutrino.Entities.Model
 {
     public class KvProperty : BaseEntity
     {

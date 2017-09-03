@@ -5,7 +5,8 @@ using Neutrino.Consensus;
 using Neutrino.Consensus.Entities;
 using Neutrino.Core.Repositories;
 using Neutrino.Core.Services.Validators;
-using Neutrino.Entities;
+using Neutrino.Entities.Model;
+using Neutrino.Entities.Response;
 
 namespace Neutrino.Core.Services
 {

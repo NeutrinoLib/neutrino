@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Neutrino.Entities;
+using Neutrino.Entities.Model;
 
-namespace Neutrino.Core.Services
+namespace Neutrino.Core.Workers
 {
-    public interface IHealthService
+    public interface IServiceHealthWorker
     {
         void RunHealthChecker(Service service);
 

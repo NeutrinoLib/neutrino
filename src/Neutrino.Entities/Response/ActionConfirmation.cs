@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Neutrino.Entities
+namespace Neutrino.Entities.Response
 {
     public class ActionConfirmation
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Neutrino.Entities;
+using Neutrino.Entities.Model;
 
 namespace Neutrino.Core.Infrastructure
 {
@@ -56,7 +56,11 @@ namespace Neutrino.Core.Infrastructure
                 var set = GetOrAddSet<T>();
                 var entityFromSet = set.FirstOrDefault(x => x.Id == id);
 
-                set.Remove(entityFromSet);
+                if(entityFromSet != null)
+                {
+                    set.Remove(entityFromSet);
+                }
+                
                 set.Add(entity);
             }
         }

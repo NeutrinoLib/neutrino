@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Neutrino.Consensus;
 using Neutrino.Consensus.States;
 using Neutrino.Core.Services;
-using Neutrino.Entities;
+using Neutrino.Entities.Model;
 
 namespace Neutrino.Api.Controllers
 {
@@ -26,7 +26,7 @@ namespace Neutrino.Api.Controllers
         /// </summary>
         /// <param name="servicesService">Services service.</param>
         /// <param name="serviceHealthService">Searvices health service.</param>
-        /// /// <param name="consensusContext">Context of consensus protocol.</param>
+        /// <param name="consensusContext">Context of consensus protocol.</param>
         public ServicesController(
             IServicesService servicesService,
             IServiceHealthService serviceHealthService,
@@ -58,14 +58,14 @@ namespace Neutrino.Api.Controllers
         /// <remarks>
         /// Endpoint returns specific service information.
         /// </remarks>
-        /// <param name="serviceId">Service id.</param>
+        /// <param name="id">Service id.</param>
         /// <returns>Specific service information.</returns>
         [HttpGet("{serviceId}")]
         [ProducesResponseType(200, Type = typeof(Service))]
         [ProducesResponseType(404)]
-        public ActionResult Get(string serviceId)
+        public ActionResult Get(string id)
         {
-            var service = _servicesService.Get(serviceId);
+            var service = _servicesService.Get(id);
             if(service == null)
             {
                 return NotFound();
@@ -109,27 +109,27 @@ namespace Neutrino.Api.Controllers
         /// <remarks>
         /// Endpoint for updating service information.
         /// </remarks>
-        /// <param name="serviceId">Service id to update.</param>
+        /// <param name="id">Service id to update.</param>
         /// <param name="service">New service information.</param>
         /// <returns>Returns 200 (Ok) if update was finished successfully.</returns>
         [HttpPut("{serviceId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
-        public async Task<ActionResult> Put(string serviceId, [FromBody]Service service)
+        public async Task<ActionResult> Put(string id, [FromBody]Service service)
         {
             if(!_consensusContext.IsLeader())
             {
                 return Redirect($"{_consensusContext.NodeVote.LeaderNode.Address}/api/services");
             }
 
-            var serviceFromStore = _servicesService.Get(serviceId);
+            var serviceFromStore = _servicesService.Get(id);
             if(serviceFromStore == null)
             {
                 return NotFound();
             }
 
-            service.Id = serviceId;
+            service.Id = id;
             var actionConfirmation = await _servicesService.Update(service);
             if(actionConfirmation.WasSuccessful)
             {
@@ -147,25 +147,25 @@ namespace Neutrino.Api.Controllers
         /// <remarks>
         /// Endpoint for deleting service.
         /// </remarks>
-        /// <param name="serviceId">Service id.</param>
+        /// <param name="id">Service id.</param>
         /// <returns>Returns 200 (Ok) if service was deleted.</returns>
         [HttpDelete("{serviceId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult> Delete(string serviceId)
+        public async Task<ActionResult> Delete(string id)
         {
             if(!_consensusContext.IsLeader())
             {
                 return Redirect($"{_consensusContext.NodeVote.LeaderNode.Address}/api/services");
             }
 
-            var service = _servicesService.Get(serviceId);
+            var service = _servicesService.Get(id);
             if(service == null)
             {
                 return NotFound();
             }
 
-            var actionConfirmation = await _servicesService.Delete(serviceId);
+            var actionConfirmation = await _servicesService.Delete(id);
             if(actionConfirmation.WasSuccessful)
             {
                 return Ok();
@@ -174,38 +174,6 @@ namespace Neutrino.Api.Controllers
             {
                 return BadRequest(actionConfirmation);
             }
-        }
-
-        /// <summary>
-        /// Returns service health.
-        /// </summary>
-        /// <remarks>
-        /// Endpoint returns all health information for specific service.
-        /// </remarks>
-        /// <param name="serviceId">Service id.</param>
-        /// <returns>Returns service's health information.</returns>
-        [HttpGet("{serviceId}/health")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<ServiceHealth>))]
-        public IEnumerable<ServiceHealth> GetServiceHealth(string serviceId)
-        {
-            var serviceHealth = _serviceHealthService.Get(serviceId);
-            return serviceHealth;
-        }
-
-        /// <summary>
-        /// Returns current service health.
-        /// </summary>
-        /// <remarks>
-        /// Endpoint returns only current healt status for specific endpoint.
-        /// </remarks>
-        /// <param name="serviceId">Service id.</param>
-        /// <returns>Returns current service's health information.</returns>
-        [HttpGet("{serviceId}/health/current")]
-        [ProducesResponseType(200, Type = typeof(ServiceHealth))]
-        public ServiceHealth GetCurrentServiceHealth(string serviceId)
-        {
-            var serviceHealth = _serviceHealthService.GetCurrent(serviceId);
-            return serviceHealth;
         }
     }
 }

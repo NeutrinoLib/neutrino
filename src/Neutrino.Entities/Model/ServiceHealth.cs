@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Neutrino.Entities
+namespace Neutrino.Entities.Model
 {
     public class ServiceHealth : BaseEntity
     {

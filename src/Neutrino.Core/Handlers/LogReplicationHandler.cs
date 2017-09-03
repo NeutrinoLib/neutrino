@@ -4,18 +4,19 @@ using System.Threading.Tasks;
 using Neutrino.Consensus;
 using Neutrino.Consensus.Entities;
 using Neutrino.Consensus.Events;
-using Neutrino.Entities;
+using Neutrino.Core.Services;
+using Neutrino.Entities.Model;
 using Newtonsoft.Json;
 
-namespace Neutrino.Core.Services
+namespace Neutrino.Core.Handlers
 {
-    public class LogReplicationService : ILogReplicable
+    public class LogReplicationHandler : ILogReplicable
     {
         private readonly IServiceHealthService _serviceHealthService;
         private readonly IServicesService _servicesService;
         private readonly IKvPropertyService _kvPropertyService;
 
-        public LogReplicationService(
+        public LogReplicationHandler(
             IServiceHealthService serviceHealthService, 
             IServicesService servicesService,
             IKvPropertyService kvPropertyService)

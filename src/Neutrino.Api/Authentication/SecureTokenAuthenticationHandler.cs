@@ -7,12 +7,12 @@ using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using Neutrino.Core.Services.Parameters;
 
-namespace Neutrino.Api
+namespace Neutrino.Api.Authentication
 {
     /// <summary>
-    /// Secure token handler.
+    /// Secure token authentication handler.
     /// </summary>
-    public class SecureTokenHandler : IAuthenticationHandler
+    public class SecureTokenAuthenticationHandler : IAuthenticationHandler
     {
         private HttpContext _context;
         private AuthenticationScheme _scheme;
@@ -23,7 +23,7 @@ namespace Neutrino.Api
         /// Constructor.
         /// </summary>
         /// <param name="applicationParameters">Application parameters.</param>
-        public SecureTokenHandler(IOptions<ApplicationParameters> applicationParameters)
+        public SecureTokenAuthenticationHandler(IOptions<ApplicationParameters> applicationParameters)
         {
             _applicationParameters = applicationParameters.Value;
         }

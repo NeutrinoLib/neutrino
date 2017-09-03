@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Neutrino.Core.Repositories;
-using Neutrino.Entities;
+using Neutrino.Entities.Model;
+using Neutrino.Entities.Response;
 
 namespace Neutrino.Core.Services.Validators
 {

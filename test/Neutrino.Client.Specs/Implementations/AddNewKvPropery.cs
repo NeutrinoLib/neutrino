@@ -1,8 +1,9 @@
 using FluentBehave;
 using System;
-using Neutrino.Entities;
 using System.Threading.Tasks;
 using Xunit;
+using Neutrino.Entities.Model;
+using Neutrino.Entities.Response;
 
 namespace Neutrino.Client.Specs
 {

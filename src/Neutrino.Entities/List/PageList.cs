@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Neutrino.Entities
+namespace Neutrino.Entities.List
 {
     public class PageList<T>
     {

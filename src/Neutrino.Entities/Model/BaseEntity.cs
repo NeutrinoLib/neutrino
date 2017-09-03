@@ -1,6 +1,6 @@
 using System;
 
-namespace Neutrino.Entities
+namespace Neutrino.Entities.Model
 {
     public class BaseEntity
     {

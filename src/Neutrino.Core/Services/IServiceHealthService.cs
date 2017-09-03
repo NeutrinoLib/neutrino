@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Neutrino.Entities;
+using Neutrino.Entities.List;
+using Neutrino.Entities.Model;
 
 namespace Neutrino.Core.Services
 {
@@ -8,7 +10,7 @@ namespace Neutrino.Core.Services
     {
         IEnumerable<ServiceHealth> Get();
 
-        IEnumerable<ServiceHealth> Get(string serviceId);
+        PageList<ServiceHealth> Get(string serviceId, int offset = 0, int limit = Int32.MaxValue);
 
         ServiceHealth GetCurrent(string serviceId);
 

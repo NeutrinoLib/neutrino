@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Neutrino.Entities;
+using Neutrino.Entities.Model;
+using Neutrino.Entities.Response;
 
 namespace Neutrino.Core.Services
 {

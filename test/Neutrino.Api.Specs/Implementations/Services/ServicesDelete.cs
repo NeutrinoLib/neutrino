@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentBehave;
 using Neutrino.Api.Specs.Infrastructure;
-using Neutrino.Entities;
+using Neutrino.Entities.Model;
 using Newtonsoft.Json;
 using Xunit;
 

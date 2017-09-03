@@ -1,14 +1,15 @@
 using System;
 using Neutrino.Consensus;
 using Neutrino.Consensus.States;
+using Neutrino.Core.Services;
 
-namespace Neutrino.Core.Services
+namespace Neutrino.Core.Handlers
 {
-    public class StateObserverService : IStateObservable
+    public class StateObserverHandler : IStateObservable
     {
         private readonly IServicesService _servicesService;
 
-        public StateObserverService(IServicesService servicesService)
+        public StateObserverHandler(IServicesService servicesService)
         {
             _servicesService = servicesService;
         }
