@@ -22,4 +22,8 @@
     <DotNetCliToolReference Include="FluentBehave.Tools" Version="1.0.0-rc2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="xunit.runner.json" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
 </Project>
