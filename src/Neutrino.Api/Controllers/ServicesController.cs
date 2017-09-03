@@ -112,7 +112,7 @@ namespace Neutrino.Api.Controllers
         /// <param name="id">Service id to update.</param>
         /// <param name="service">New service information.</param>
         /// <returns>Returns 200 (Ok) if update was finished successfully.</returns>
-        [HttpPut("{serviceId}")]
+        [HttpPut("{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
@@ -149,7 +149,7 @@ namespace Neutrino.Api.Controllers
         /// </remarks>
         /// <param name="id">Service id.</param>
         /// <returns>Returns 200 (Ok) if service was deleted.</returns>
-        [HttpDelete("{serviceId}")]
+        [HttpDelete("{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         public async Task<ActionResult> Delete(string id)
