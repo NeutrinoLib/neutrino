@@ -13,6 +13,7 @@ using Neutrino.Entities.Model;
 using Neutrino.Core.Workers;
 using Neutrino.Entities.Response;
 using Neutrino.Consensus.Entities;
+using System.Linq;
 
 namespace Neutrino.Core.Services
 {
@@ -46,9 +47,23 @@ namespace Neutrino.Core.Services
             _consensusContext = consensusContext;
         }
 
-        public IEnumerable<Service> Get()
+        public IEnumerable<Service> Get(string serviceType = null, string[] tags = null)
         {
             var services = _serviceRepository.Get();
+            
+            if(serviceType != null)
+            {
+                services = services.Where(x => x.ServiceType == serviceType);
+            }
+
+            if(tags != null && tags.Length > 0)
+            {
+                foreach(var tag in tags) 
+                {
+                    services = services.Where(x => x.Tags.Contains(tag));
+                }
+            }
+
             return services;
         }
 

@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Neutrino.Core.Repositories
 {
     public interface IRepository<T>
     {
-        IEnumerable<T> Get();
+        IQueryable<T> Get();
 
-        IEnumerable<T> Get(Func<T, bool> predicate);
+        IQueryable<T> Get(Func<T, bool> predicate);
 
         T Get(string id);
 

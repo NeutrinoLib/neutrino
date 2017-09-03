@@ -46,9 +46,9 @@ namespace Neutrino.Api.Controllers
         /// <returns>List of services.</returns>
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Service>))]
-        public IEnumerable<Service> Get()
+        public IEnumerable<Service> Get([FromQuery] string serviceType = null, [FromQuery] string[] tags = null)
         {
-            var services = _servicesService.Get();
+            var services = _servicesService.Get(serviceType, tags);
             return services;
         }
 

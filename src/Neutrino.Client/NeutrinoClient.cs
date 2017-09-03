@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Neutrino.Entities.List;
@@ -14,6 +13,7 @@ namespace Neutrino.Client
         
         private const string KvPropertiesEndpointPath = "/api/key-values";
         private const string ServicesEndpointPath = "/api/services";
+        private const string ServiceHealthEndpointPath = "/api/service-health";
 
         public NeutrinoClient(IHttpRequestService httpRequestService)
         {
@@ -48,7 +48,7 @@ namespace Neutrino.Client
 
         public async Task<ServiceHealth> GetLastServiceHealthAsync(string id)
         {
-            var actionConfirmation = await _httpRequestService.SendRequest<ServiceHealth>(HttpMethod.Get, ServicesEndpointPath, id, "/health/current");
+            var actionConfirmation = await _httpRequestService.SendRequest<ServiceHealth>(HttpMethod.Get, ServiceHealthEndpointPath, id, "/current");
             return actionConfirmation.ObjectData;
         }
 
@@ -60,13 +60,20 @@ namespace Neutrino.Client
 
         public async Task<IList<ServiceHealth>> GetServiceHealthAsync(string id)
         {
-            var actionConfirmation = await _httpRequestService.SendRequest<IList<ServiceHealth>>(HttpMethod.Get, ServicesEndpointPath, id, "/health");
+            var actionConfirmation = await _httpRequestService.SendRequest<IList<ServiceHealth>>(HttpMethod.Get, ServiceHealthEndpointPath, id);
             return actionConfirmation.ObjectData;
         }
 
-        public Task<PageList<ServiceHealth>> GetServiceHealthAsync(string id, int offset, int limit)
+        public async Task<PageList<ServiceHealth>> GetServiceHealthAsync(string id, int offset, int limit)
         {
-            throw new NotImplementedException();
+            var queryString = $"?offset={offset}&limit={limit}";
+            var actionConfirmation = await _httpRequestService.SendRequest<PageList<ServiceHealth>>(
+                HttpMethod.Get, 
+                ServiceHealthEndpointPath, 
+                id, 
+                queryString);
+
+            return actionConfirmation.ObjectData;
         }
 
         public async Task<IList<Service>> GetServicesAsync()
@@ -75,14 +82,23 @@ namespace Neutrino.Client
             return actionConfirmation.ObjectData;
         }
 
-        public Task<IList<Service>> GetServicesByServiceTypeAsync(string serviceType)
+        public async Task<IList<Service>> GetServicesByServiceTypeAsync(string serviceType)
         {
-            throw new NotImplementedException();
+            var queryString = $"?serviceType={serviceType}";
+            var actionConfirmation = await _httpRequestService.SendRequest<IList<Service>>(HttpMethod.Get, ServicesEndpointPath, null, queryString);
+            return actionConfirmation.ObjectData;
         }
 
-        public Task<IList<Service>> GetServicesByTagsAsync(params string[] tags)
+        public async Task<IList<Service>> GetServicesByTagsAsync(params string[] tags)
         {
-            throw new NotImplementedException();
+            var queryString = $"?";
+            foreach(var tag in tags)
+            {
+                queryString += $"tags={tag}&";
+            }
+
+            var actionConfirmation = await _httpRequestService.SendRequest<IList<Service>>(HttpMethod.Get, ServicesEndpointPath, null, queryString);
+            return actionConfirmation.ObjectData;
         }
 
         public async Task<ActionConfirmation> UpdateKvPropertyAsync(string key, KvProperty kvProperty)

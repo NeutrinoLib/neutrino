@@ -15,17 +15,17 @@ namespace Neutrino.Core.Repositories
             _storeContext = storeContext;
         }
 
-        public IEnumerable<T> Get()
+        public IQueryable<T> Get()
         {
             var set = _storeContext.Set<T>();
-            return set;
+            return set.AsQueryable();
         }
 
-        public IEnumerable<T> Get(Func<T, bool> predicate)
+        public IQueryable<T> Get(Func<T, bool> predicate)
         {
             var set = _storeContext.Set<T>();
             var query = set.Where(predicate);
-            return query;
+            return query.AsQueryable();
         }
 
         public T Get(string id)

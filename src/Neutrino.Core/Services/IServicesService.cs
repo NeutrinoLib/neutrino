@@ -7,7 +7,7 @@ namespace Neutrino.Core.Services
 {
     public interface IServicesService
     {
-        IEnumerable<Service> Get();
+        IEnumerable<Service> Get(string serviceType = null, string[] tags = null);
 
         Service Get(string id);
 
