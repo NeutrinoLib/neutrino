@@ -60,7 +60,7 @@ namespace Neutrino.Api.Controllers
         /// </remarks>
         /// <param name="id">Service id.</param>
         /// <returns>Specific service information.</returns>
-        [HttpGet("{serviceId}")]
+        [HttpGet("{id}")]
         [ProducesResponseType(200, Type = typeof(Service))]
         [ProducesResponseType(404)]
         public ActionResult Get(string id)
