@@ -7,8 +7,8 @@ using Xunit;
 
 namespace Neutrino.Client.Specs.Implementations.Services
 {
-    [Feature("GetService", "Get service")]
-    public class GetService
+    [Feature("GetServiceById", "Get service by id")]
+    public class GetServiceById
     {
         private NeutrinoClient _neutrinoClient;
         private Service _service;

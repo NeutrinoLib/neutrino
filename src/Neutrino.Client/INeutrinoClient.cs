@@ -22,6 +22,9 @@ namespace Neutrino.Client
 
         Task<ActionConfirmation> DeleteServiceAsync(string id);
 
+
+        Task<IList<KvProperty>> GetKvPropertiesAsync();
+
         Task<KvProperty> GetKvPropertyAsync(string key);
 
         Task<ActionConfirmation<KvProperty>> AddKvPropertyAsync(KvProperty kvProperty);
@@ -29,6 +32,7 @@ namespace Neutrino.Client
         Task<ActionConfirmation> UpdateKvPropertyAsync(string key, KvProperty kvProperty);
 
         Task<ActionConfirmation> DeleteKvPropertyAsync(string key);
+
 
         Task<IList<ServiceHealth>> GetServiceHealthAsync(string id);
 

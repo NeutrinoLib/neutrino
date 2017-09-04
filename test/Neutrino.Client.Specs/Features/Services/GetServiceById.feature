@@ -1,4 +1,4 @@
-Feature: Get service
+Feature: Get service by id
  
     Neutrino client have to returns service.
  

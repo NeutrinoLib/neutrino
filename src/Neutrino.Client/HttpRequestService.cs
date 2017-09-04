@@ -67,7 +67,14 @@ namespace Neutrino.Client
 
             if(!string.IsNullOrWhiteSpace(query))
             {
-                url = url.AppendPathSegment(query);
+                if(query.StartsWith("?"))
+                {
+                    url.Query = query;
+                }
+                else
+                {
+                    url = url.AppendPathSegment(query);
+                }
             }
 
             var responseMessage = await SendRequest(() => CreateHttpRequestMessage(httpMethod, url, objectData));

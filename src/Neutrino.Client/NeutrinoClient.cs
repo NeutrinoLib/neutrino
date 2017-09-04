@@ -40,6 +40,12 @@ namespace Neutrino.Client
             return await _httpRequestService.SendRequest(HttpMethod.Delete, ServicesEndpointPath, id);
         }
 
+        public async Task<IList<KvProperty>> GetKvPropertiesAsync()
+        {
+            var actionConfirmation = await _httpRequestService.SendRequest<IList<KvProperty>>(HttpMethod.Get, KvPropertiesEndpointPath);
+            return actionConfirmation.ObjectData;
+        }
+
         public async Task<KvProperty> GetKvPropertyAsync(string key)
         {
             var actionConfirmation = await _httpRequestService.SendRequest<KvProperty>(HttpMethod.Get, KvPropertiesEndpointPath, key);
