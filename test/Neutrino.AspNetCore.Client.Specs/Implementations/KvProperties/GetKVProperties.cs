@@ -5,7 +5,7 @@ using Neutrino.Entities.Model;
 using Xunit;
 using System.Collections.Generic;
 
-namespace Neutrino.Client.Specs.Implementations.KvProperties
+namespace Neutrino.AspNetCore.Client.Specs.Implementations.KvProperties
 {
     [Feature("GetKVProperties", "Get KV properties")]
     public class GetKVProperties

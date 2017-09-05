@@ -2,7 +2,7 @@ using System;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Neutrino.Client
+namespace Neutrino.AspNetCore.Client
 {
     public static class NeutrinoClientExtensions
     {

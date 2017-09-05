@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Neutrino.AspNetCore.Client</id>
+    <version>$version$</version>
+    <authors>@mczachurski</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/NeutrinoLib/neutrino</projectUrl>
+    <description>C# client libraries for Neutrino service discovery.</description>
+    <title>Neutrino.AspNetCore.Client</title>
+    <dependencies>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Newtonsoft.Json" version="10.0.3" exclude="Build,Analyzers" />
+        <dependency id="Flurl" version="2.4.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="2.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin/$config$/netstandard2.0/Neutrino.Entities.dll" target="lib/netstandard2.0" />
+    <file src="bin/$config$/netstandard2.0/Neutrino.AspNetCore.Client.dll" target="lib/netstandard2.0" />
+  </files>
+</package>

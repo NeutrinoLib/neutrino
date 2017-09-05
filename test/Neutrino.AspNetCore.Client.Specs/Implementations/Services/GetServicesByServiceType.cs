@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using System.Linq;
 
-namespace Neutrino.Client.Specs.Implementations.Services
+namespace Neutrino.AspNetCore.Client.Specs.Implementations.Services
 {
     [Feature("GetServicesByServiceType", "Get services by service type")]
     public class GetServicesByServiceType

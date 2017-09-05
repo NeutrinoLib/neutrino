@@ -5,7 +5,7 @@ using Xunit;
 using Neutrino.Entities.Model;
 using Neutrino.Entities.Response;
 
-namespace Neutrino.Client.Specs.Implementations.KvProperties
+namespace Neutrino.AspNetCore.Client.Specs.Implementations.KvProperties
 {
     [Feature("AddNewKvPropery", "Add new KV property")]
     public class AddNewKvPropery

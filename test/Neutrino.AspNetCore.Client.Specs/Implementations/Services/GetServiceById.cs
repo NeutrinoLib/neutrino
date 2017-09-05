@@ -5,7 +5,7 @@ using Neutrino.Entities.Model;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Neutrino.Client.Specs.Implementations.Services
+namespace Neutrino.AspNetCore.Client.Specs.Implementations.Services
 {
     [Feature("GetServiceById", "Get service by id")]
     public class GetServiceById

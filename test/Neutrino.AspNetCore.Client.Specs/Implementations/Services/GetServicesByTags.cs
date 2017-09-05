@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Neutrino.Entities.Model;
 using System.Linq;
 
-namespace Neutrino.Client.Specs.Implementations.Services
+namespace Neutrino.AspNetCore.Client.Specs.Implementations.Services
 {
     [Feature("GetServicesByTags", "Get services by tags")]
     public class GetServicesByTags

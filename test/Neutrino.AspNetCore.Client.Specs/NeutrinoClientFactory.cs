@@ -1,7 +1,7 @@
 using System.IO;
 using Microsoft.Extensions.Configuration;
 
-namespace Neutrino.Client.Specs
+namespace Neutrino.AspNetCore.Client.Specs
 {
     public static class NeutrinoClientFactory
     {

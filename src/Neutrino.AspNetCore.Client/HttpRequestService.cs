@@ -8,7 +8,7 @@ using Flurl;
 using Neutrino.Entities.Response;
 using Newtonsoft.Json;
 
-namespace Neutrino.Client
+namespace Neutrino.AspNetCore.Client
 {
     public class HttpRequestService : IHttpRequestService
     {

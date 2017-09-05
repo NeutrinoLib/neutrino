@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Neutrino.Entities.Response;
 
-namespace Neutrino.Client
+namespace Neutrino.AspNetCore.Client
 {
     public interface IHttpRequestService
     {

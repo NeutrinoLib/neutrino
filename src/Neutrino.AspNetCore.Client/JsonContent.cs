@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Text;
 
-namespace Neutrino.Client
+namespace Neutrino.AspNetCore.Client
 {
     public class JsonContent : StringContent
     {

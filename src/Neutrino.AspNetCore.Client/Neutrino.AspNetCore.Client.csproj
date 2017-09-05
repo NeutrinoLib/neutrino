@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NuspecFile>Neutrino.AspNetCore.Client.nuspec</NuspecFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Neutrino.Entities/Neutrino.Entities.csproj" />
@@ -13,4 +14,11 @@
     <PackageReference Include="Flurl" Version="2.4.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
   </ItemGroup>
+  <Target Name="SetNuspecProperties" BeforeTargets="GenerateNuspec">
+    <PropertyGroup>
+      <NuspecProperties>$(NuspecProperties);config=$(Configuration)</NuspecProperties>
+      <NuspecProperties>$(NuspecProperties);version=1.0.0</NuspecProperties>
+    </PropertyGroup>
+    <Message Importance="high" Text="NuspecProperties: $(NuspecProperties)" />
+  </Target>
 </Project>

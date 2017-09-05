@@ -5,7 +5,7 @@ using Xunit;
 using Neutrino.Entities.Model;
 using System.Collections.Generic;
 
-namespace Neutrino.Client.Specs.Implementations.Services
+namespace Neutrino.AspNetCore.Client.Specs.Implementations.Services
 {
     [Feature("GetServices", "Get services")]
     public class GetServices

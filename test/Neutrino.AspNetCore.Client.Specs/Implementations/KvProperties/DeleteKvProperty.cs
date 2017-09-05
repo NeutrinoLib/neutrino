@@ -5,7 +5,7 @@ using Xunit;
 using Neutrino.Entities.Model;
 using Neutrino.Entities.Response;
 
-namespace Neutrino.Client.Specs.Implementations.KvProperties
+namespace Neutrino.AspNetCore.Client.Specs.Implementations.KvProperties
 {
     [Feature("DeleteKvProperty", "Delete KV property")]
     public class DeleteKvProperty

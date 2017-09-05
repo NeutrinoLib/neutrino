@@ -1,4 +1,4 @@
-namespace Neutrino.Client
+namespace Neutrino.AspNetCore.Client
 {
     public interface INeutrinoClientOptions
     {

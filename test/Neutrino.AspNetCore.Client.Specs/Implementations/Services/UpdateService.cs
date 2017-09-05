@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Neutrino.Entities.Model;
 using Xunit;
 
-namespace Neutrino.Client.Specs.Implementations.Services
+namespace Neutrino.AspNetCore.Client.Specs.Implementations.Services
 {
     [Feature("UpdateService", "Update service")]
     public class UpdateService
