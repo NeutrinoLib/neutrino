@@ -57,3 +57,17 @@ test: off
 test_script:
   - cd "test\Neutrino.Api.Specs"
   - dotnet test -c %CONFIGURATION% --no-build
+
+after_build:
+  - dotnet pack "src\Neutrino.AspNetCore.Client" -c %CONFIGURATION% -o "../../artifacts"
+
+artifacts:
+  - path: artifacts\**\*.*
+
+deploy:
+  provider: NuGet
+  api_key: 
+    secure: 14y7GJ6bBi+ePi58Xz7W6FNbPEaRkAvncBJZRccMmBhq00Jct5nWcCpRjd21aHUR
+  on:
+    branch:
+      - master
