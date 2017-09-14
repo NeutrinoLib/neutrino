@@ -59,6 +59,18 @@ namespace Neutrino.Core.Services
         {
             serviceHealth.ServiceId = serviceId;
             _serviceHealthRepository.Create(serviceHealth);
+
+            RemoveOldItems();
+        }
+
+        private void RemoveOldItems()
+        {
+            var serviceHealths = _serviceHealthRepository.Get();
+            var serviceHealthsToRemove = serviceHealths.OrderByDescending(x => x.CreatedDate).Skip(100);
+            foreach (var itemToRemove in serviceHealthsToRemove)
+            {
+                _serviceHealthRepository.Remove(itemToRemove.Id);
+            }
         }
 
         public void Clear()

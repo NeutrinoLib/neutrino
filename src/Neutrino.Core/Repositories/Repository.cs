@@ -36,6 +36,7 @@ namespace Neutrino.Core.Repositories
 
         public void Create(T entity)
         {
+            entity.CreatedDate = DateTime.UtcNow;
             _storeContext.Add(entity);
         }
 
